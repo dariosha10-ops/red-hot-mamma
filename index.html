@@ -11,7 +11,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.39.0/dist/web.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -67,6 +66,14 @@
       "RED HOT MAMMA LEAMINGTON": "2018",
       "RED HOT MAMMA SOLIHULL": "2385",
       "RED HOT MAMMA STRATFORD": "1564",
+    };
+
+    // User credentials - username and password per location
+    const SITE_CREDENTIALS = {
+      "RED HOT MAMMA WARWICK": { username: "warwick", password: "mamma1980" },
+      "RED HOT MAMMA LEAMINGTON": { username: "leamington", password: "mamma2018" },
+      "RED HOT MAMMA SOLIHULL": { username: "solihull", password: "mamma2385" },
+      "RED HOT MAMMA STRATFORD": { username: "stratford", password: "mamma1564" },
     };
 
     const locations = Object.keys(SITE_PINS);
@@ -405,8 +412,9 @@
     function App() {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [selectedLocation, setSelectedLocation] = useState('');
-      const [pinInput, setPinInput] = useState('');
-      const [pinError, setPinError] = useState('');
+      const [usernameInput, setUsernameInput] = useState('');
+      const [passwordInput, setPasswordInput] = useState('');
+      const [loginError, setLoginError] = useState('');
       const [view, setView] = useState('search');
       const [searchQuery, setSearchQuery] = useState('');
       const [cart, setCart] = useState([]);
@@ -414,6 +422,8 @@
       const [showRequestModal, setShowRequestModal] = useState(false);
       const [customRequest, setCustomRequest] = useState({ description: '', link: '', note: '' });
       const [showConfirmation, setShowConfirmation] = useState(null);
+      const [showPasswordConfirm, setShowPasswordConfirm] = useState(null);
+      const [confirmPassword, setConfirmPassword] = useState('');
       const [staffEmail, setStaffEmail] = useState('');
       const [emailError, setEmailError] = useState('');
       const [sending, setSending] = useState(false);
@@ -421,6 +431,7 @@
       const [imageZoom, setImageZoom] = useState(null);
       const [pendingOrders, setPendingOrders] = useState([]);
       const [itemRequests, setItemRequests] = useState([]);
+      const [orderHistory, setOrderHistory] = useState([]);
       
       // Scan states
       const [showScanModal, setShowScanModal] = useState(false);
@@ -611,8 +622,11 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
         const unsubRequests = db.collection('itemRequests').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
           setItemRequests(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         });
-        return () => { unsubOrders(); unsubRequests(); };
-      }, [isLoggedIn]);
+        const unsubHistory = db.collection('orderHistory').where('location', '==', selectedLocation).orderBy('createdAt', 'desc').limit(50).onSnapshot((snapshot) => {
+          setOrderHistory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+        return () => { unsubOrders(); unsubRequests(); unsubHistory(); };
+      }, [isLoggedIn, selectedLocation]);
 
       const showNotify = (message, type = 'success') => {
         setNotification({ message, type });
@@ -657,13 +671,14 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
       const removeFromCart = (item) => setCart(cart.filter(c => c.item.item !== item.item));
 
       const handleLogin = () => {
-        if (!selectedLocation) { setPinError('Please select a location'); return; }
-        if (pinInput === SITE_PINS[selectedLocation]) {
+        if (!selectedLocation) { setLoginError('Please select a location'); return; }
+        const creds = SITE_CREDENTIALS[selectedLocation];
+        if (usernameInput.toLowerCase() === creds.username && passwordInput === creds.password) {
           setLoginAnimating(true);
-          setTimeout(() => { setIsLoggedIn(true); setPinError(''); setLoginAnimating(false); }, 300);
+          setTimeout(() => { setIsLoggedIn(true); setLoginError(''); setLoginAnimating(false); }, 300);
         } else {
-          setPinError('Incorrect PIN');
-          setPinInput('');
+          setLoginError('Incorrect username or password');
+          setPasswordInput('');
         }
       };
 
@@ -690,6 +705,23 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
             location: selectedLocation.replace('RED HOT MAMMA ', ''),
             date: new Date().toLocaleDateString('en-GB'), order_body: orderBody,
           });
+          
+          // Save to order history
+          await db.collection('orderHistory').add({
+            location: selectedLocation,
+            locationShort: selectedLocation.replace('RED HOT MAMMA ', ''),
+            supplier: supplier,
+            items: items.map(c => ({
+              item: c.item.item,
+              code: c.item.code,
+              quantity: c.quantity,
+              boxSize: c.item.boxSize,
+              totalUnits: c.item.boxSize ? c.quantity * c.item.boxSize : c.quantity
+            })),
+            staffEmail: staffEmail,
+            createdAt: new Date(),
+          });
+          
           setCart(cart.filter(c => c.item.supplier !== supplier));
           setShowConfirmation(null);
           setStaffEmail('');
@@ -747,6 +779,30 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
         }
       };
 
+      // Mark request as received
+      const markRequestReceived = async (requestId) => {
+        try {
+          await db.collection('itemRequests').doc(requestId).update({ status: 'received' });
+          showNotify('Marked as received');
+        } catch (error) {
+          console.error('Error marking received:', error);
+          showNotify('Failed to update', 'error');
+        }
+      };
+
+      // Verify password for order confirmation
+      const verifyPasswordAndSend = () => {
+        const creds = SITE_CREDENTIALS[selectedLocation];
+        if (confirmPassword === creds.password) {
+          setShowConfirmation(showPasswordConfirm);
+          setShowPasswordConfirm(null);
+          setConfirmPassword('');
+        } else {
+          showNotify('Incorrect password', 'error');
+          setConfirmPassword('');
+        }
+      };
+
       const pendingFromOthers = pendingOrders.filter(o => o.location !== selectedLocation && o.status === 'pending');
       const myPending = pendingOrders.filter(o => o.location === selectedLocation);
       const cheflineItems = cart.filter(c => c.item.supplier === 'CHEFLINE');
@@ -778,7 +834,7 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                     <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2.5">Location</label>
                     <select
                       value={selectedLocation}
-                      onChange={(e) => { setSelectedLocation(e.target.value); setPinError(''); }}
+                      onChange={(e) => { setSelectedLocation(e.target.value); setLoginError(''); }}
                       className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all appearance-none cursor-pointer"
                       style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2771717a' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em' }}
                     >
@@ -790,28 +846,37 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                   </div>
 
                   {selectedLocation && (
-                    <div className="animate-fadeIn">
-                      <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2.5">PIN</label>
-                      <input
-                        type="password"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength={4}
-                        value={pinInput}
-                        onChange={(e) => { setPinInput(e.target.value.replace(/\D/g, '')); setPinError(''); }}
-                        onKeyDown={(e) => e.key === 'Enter' && pinInput.length === 4 && handleLogin()}
-                        placeholder="••••"
-                        className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-center text-2xl tracking-[0.5em] font-semibold focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all placeholder:text-zinc-700 placeholder:tracking-[0.3em]"
-                      />
-                      {pinError && (
-                        <p className="text-red-400 text-sm font-medium mt-2.5 text-center animate-shake">{pinError}</p>
+                    <div className="animate-fadeIn space-y-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2.5">Username</label>
+                        <input
+                          type="text"
+                          value={usernameInput}
+                          onChange={(e) => { setUsernameInput(e.target.value); setLoginError(''); }}
+                          placeholder="Enter username"
+                          className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all placeholder:text-zinc-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2.5">Password</label>
+                        <input
+                          type="password"
+                          value={passwordInput}
+                          onChange={(e) => { setPasswordInput(e.target.value); setLoginError(''); }}
+                          onKeyDown={(e) => e.key === 'Enter' && usernameInput && passwordInput && handleLogin()}
+                          placeholder="Enter password"
+                          className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all placeholder:text-zinc-600"
+                        />
+                      </div>
+                      {loginError && (
+                        <p className="text-red-400 text-sm font-medium text-center animate-shake">{loginError}</p>
                       )}
                     </div>
                   )}
 
                   <button
                     onClick={handleLogin}
-                    disabled={!selectedLocation || pinInput.length !== 4}
+                    disabled={!selectedLocation || !usernameInput || !passwordInput}
                     className="w-full bg-white text-black py-3.5 rounded-xl text-base font-semibold hover:bg-zinc-100 transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
                   >
                     Sign In
@@ -896,6 +961,46 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                   </button>
                   <button
                     onClick={() => { setShowConfirmation(null); setStaffEmail(''); setEmailError(''); }}
+                    className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Password Confirmation Modal */}
+          {showPasswordConfirm && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+              <div className="glass-heavy rounded-2xl p-6 w-full max-w-md border border-zinc-800 animate-scaleIn">
+                <h2 className="text-xl font-bold text-white mb-1">Confirm Order</h2>
+                <p className="text-zinc-400 text-sm font-medium mb-5">Enter your password to confirm the {showPasswordConfirm} order</p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Password</label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && confirmPassword && verifyPasswordAndSend()}
+                      placeholder="Enter your password"
+                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 mt-5">
+                  <button
+                    onClick={verifyPasswordAndSend}
+                    disabled={!confirmPassword}
+                    className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-zinc-100 transition disabled:opacity-40 active:scale-[0.98]"
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    onClick={() => { setShowPasswordConfirm(null); setConfirmPassword(''); }}
                     className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition"
                   >
                     Cancel
@@ -1068,10 +1173,11 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                 </div>
                 <div className="flex items-center gap-1">
                   {[
-                    { id: 'search', label: 'Search' },
-                    { id: 'pending', label: 'Stock' },
-                    { id: 'cart', label: 'Cart', count: cart.length },
-                    { id: 'requests', label: 'Requests', count: itemRequests.filter(r => r.status === 'pending').length },
+                    { id: 'search', label: 'Search', icon: null },
+                    { id: 'pending', label: 'Stock', icon: null },
+                    { id: 'cart', label: 'Order', count: cart.length, icon: null },
+                    { id: 'requests', label: 'Requests', count: itemRequests.filter(r => r.status === 'pending').length, icon: null },
+                    { id: 'history', label: '', icon: 'receipt' },
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -1082,7 +1188,11 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                           : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
                       }`}
                     >
-                      {tab.label}
+                      {tab.icon === 'receipt' ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      ) : tab.label}
                       {tab.count > 0 && (
                         <span className={`absolute -top-1 -right-1 w-4 h-4 text-[10px] rounded-full flex items-center justify-center font-bold ${
                           view === tab.id ? 'bg-red-500 text-white' : 'bg-zinc-600 text-white'
@@ -1284,18 +1394,18 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                       </svg>
                     </div>
-                    <p className="text-white text-lg font-semibold">Your cart is empty</p>
+                    <p className="text-white text-lg font-semibold">No items to order</p>
                     <button onClick={() => setView('search')} className="mt-5 bg-white text-black px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]">
-                      Start Shopping
+                      Browse Items
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {cheflineItems.length > 0 && (
-                      <SupplierCart supplier="CHEFLINE" items={cheflineItems} onSend={() => setShowConfirmation('CHEFLINE')} onUpdate={updateQuantity} onRemove={removeFromCart} />
+                      <SupplierCart supplier="CHEFLINE" items={cheflineItems} onSend={() => setShowPasswordConfirm('CHEFLINE')} onUpdate={updateQuantity} onRemove={removeFromCart} />
                     )}
                     {whitesItems.length > 0 && (
-                      <SupplierCart supplier="WHITES FOOD" items={whitesItems} onSend={() => setShowConfirmation('WHITES FOOD')} onUpdate={updateQuantity} onRemove={removeFromCart} />
+                      <SupplierCart supplier="WHITES FOOD" items={whitesItems} onSend={() => setShowPasswordConfirm('WHITES FOOD')} onUpdate={updateQuantity} onRemove={removeFromCart} />
                     )}
                     {amazonItems.length > 0 && (
                       <div className="glass rounded-2xl border border-zinc-700/50 overflow-hidden">
@@ -1348,7 +1458,7 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {itemRequests.map(r => (
+                    {itemRequests.filter(r => r.status !== 'received').map(r => (
                       <div key={r.id} className={`glass rounded-xl border p-4 ${
                         r.status === 'pending' ? 'border-amber-500/40' :
                         r.status === 'approved' ? 'border-emerald-500/40' : 'border-red-500/40'
@@ -1371,9 +1481,73 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                           </a>
                         )}
                         {r.note && <p className="text-zinc-400 text-sm">{r.note}</p>}
-                        <p className="text-xs text-zinc-600 mt-2">
-                          {r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString('en-GB') : new Date(r.createdAt).toLocaleString('en-GB')}
-                        </p>
+                        <div className="flex justify-between items-center mt-3">
+                          <p className="text-xs text-zinc-600">
+                            {r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString('en-GB') : new Date(r.createdAt).toLocaleString('en-GB')}
+                          </p>
+                          {r.status === 'pending' && (
+                            <button
+                              onClick={() => markRequestReceived(r.id)}
+                              className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                            >
+                              Mark Received
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ORDER HISTORY VIEW */}
+            {view === 'history' && (
+              <>
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white">Order History</h2>
+                  <p className="text-zinc-500 text-sm">Your previous orders from {selectedLocation.replace('RED HOT MAMMA ', '')}</p>
+                </div>
+                {orderHistory.length === 0 ? (
+                  <div className="text-center py-20">
+                    <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-5">
+                      <svg className="w-7 h-7 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <p className="text-white text-lg font-semibold">No orders yet</p>
+                    <p className="text-zinc-500 text-sm mt-1">Your order history will appear here</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {orderHistory.map(order => (
+                      <div key={order.id} className="glass rounded-xl border border-zinc-700/50 overflow-hidden">
+                        <div className={`px-4 py-3 flex justify-between items-center ${
+                          order.supplier === 'CHEFLINE' ? 'bg-blue-600/20 border-b border-blue-500/30' :
+                          order.supplier === 'WHITES FOOD' ? 'bg-emerald-600/20 border-b border-emerald-500/30' :
+                          'bg-amber-600/20 border-b border-amber-500/30'
+                        }`}>
+                          <div>
+                            <span className={`text-sm font-bold ${
+                              order.supplier === 'CHEFLINE' ? 'text-blue-400' :
+                              order.supplier === 'WHITES FOOD' ? 'text-emerald-400' : 'text-amber-400'
+                            }`}>{order.supplier}</span>
+                            <p className="text-xs text-zinc-400">
+                              {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : new Date(order.createdAt).toLocaleDateString('en-GB')}
+                            </p>
+                          </div>
+                          <span className="text-xs text-zinc-500">{order.items?.length || 0} items</span>
+                        </div>
+                        <div className="p-4 space-y-2">
+                          {order.items?.map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center text-sm">
+                              <span className="text-zinc-300">{item.item}</span>
+                              <span className="text-zinc-500">
+                                {item.quantity}{item.boxSize ? ` boxes (${item.totalUnits} units)` : ' units'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1384,7 +1558,7 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
 
           {/* Logout */}
           <button
-            onClick={() => { setIsLoggedIn(false); setSelectedLocation(''); setPinInput(''); setCart([]); }}
+            onClick={() => { setIsLoggedIn(false); setSelectedLocation(''); setUsernameInput(''); setPasswordInput(''); setCart([]); }}
             className="fixed bottom-5 left-5 glass border border-zinc-800 text-zinc-500 px-4 py-2 rounded-lg font-medium text-sm hover:text-white hover:border-zinc-600 transition"
           >
             Sign Out
