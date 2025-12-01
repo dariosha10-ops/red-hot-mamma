@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mamma's Ordering Hub</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.39.0/dist/web.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body { background: #0a0a0a; margin: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+    @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+    .animate-scaleIn { animation: scaleIn 0.25s ease-out; }
+    .animate-slideDown { animation: slideDown 0.3s ease-out; }
+    .animate-shake { animation: shake 0.3s ease-out; }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    .glass-heavy { background: rgba(255,255,255,0.05); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); }
+    select option { background: #171717; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    const CONFIG = {
+      CHEFLINE_EMAIL: "gurdeep@chefline.co.uk",
+      WHITES_FOOD_EMAIL: "orders@whitesfood.com",
+      ADMIN_EMAIL: "dariosha10@gmail.com",
+      EMAILJS_SERVICE_ID: "service_lj58e9t",
+      EMAILJS_TEMPLATE_ID: "template_i766kzf",
+      EMAILJS_PUBLIC_KEY: "anFP4Hq_7fYx6iutL",
+    };
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVWOsAs1iQPwLLVDQtrcwExifw18_281Y",
+      authDomain: "red-hot-mamma.firebaseapp.com",
+      projectId: "red-hot-mamma",
+      storageBucket: "red-hot-mamma.firebasestorage.app",
+      messagingSenderId: "516537307484",
+      appId: "1:516537307484:web:c0b9f35406325d73e37199"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    emailjs.init(CONFIG.EMAILJS_PUBLIC_KEY);
+
+    const SITE_PINS = {
+      "RED HOT MAMMA WARWICK": "1980",
+      "RED HOT MAMMA LEAMINGTON": "2018",
+      "RED HOT MAMMA SOLIHULL": "2385",
+      "RED HOT MAMMA STRATFORD": "1564",
+    };
+
+    const locations = Object.keys(SITE_PINS);
+
+    // ============================================
+    // INVENTORY
+    // ============================================
+    const inventory = [
+      // GLASSWARE
+      { item: "Water Glass", category: "Glassware", supplier: "CHEFLINE", code: "P52060-000000-B12024", boxSize: 24, image: "https://i.ibb.co/spvFByXv/4281-D58-BBE6-D1-E2-DD1-B36-F83-D6-CA94-BB.png", keywords: ["water", "drinking", "table glass"] },
+      { item: "Beer Glass", category: "Glassware", supplier: "CHEFLINE", code: "P52112-000000-B12024", boxSize: 24, image: "https://i.ibb.co/R5rmB6G/download.jpg", keywords: ["beer", "lager", "pint"] },
+      { item: "Wine Glass", category: "Glassware", supplier: "CHEFLINE", code: "P44390-000000-B01048", boxSize: 48, image: "https://i.ibb.co/xKhgcpJF/download-1.jpg", keywords: ["wine", "red wine", "white wine"] },
+      { item: "Champagne/Prosecco Flute", category: "Glassware", supplier: "CHEFLINE", code: "P44704-000000-C12024", boxSize: 24, image: "https://i.ibb.co/1fmrD5NG/download-2.jpg", keywords: ["champagne", "prosecco", "flute", "fizz"] },
+      { item: "Gin Glass (Mamma G&T)", category: "Glassware", supplier: "CHEFLINE", code: "P440346-00000-B06024", boxSize: 24, image: "https://i.ibb.co/CpwQxHMc/p440346-00000-b06024-dc6.jpg", keywords: ["gin", "g&t", "copa", "balloon"] },
+      { item: "Mojito Glass", category: "Glassware", supplier: "CHEFLINE", code: "P520055-00000-B06012", boxSize: 12, image: "https://i.ibb.co/Jwvmps6s/P520055-00000-B06012-300x300.jpg", keywords: ["mojito", "highball", "tall glass"] },
+      { item: "Flying Saucer Glass", category: "Glassware", supplier: "CHEFLINE", code: "P440436-00000-B06012", boxSize: 12, image: "https://i.ibb.co/PGXGGb2X/download-3.jpg", keywords: ["flying saucer", "margarita", "coupe"] },
+      { item: "Mammamargherita Glass", category: "Glassware", supplier: "CHEFLINE", code: "P440176-00000-B01012", boxSize: 12, image: "https://i.ibb.co/gMXfBcSZ/P440176-00000-B01012.jpg", keywords: ["mammamargherita", "martini"] },
+      { item: "Tropical Disco Glass", category: "Glassware", supplier: "CHEFLINE", code: "P67105-000000-B06012", boxSize: 12, image: "https://i.ibb.co/2739SsfX/P67105-000000-B06012.jpg", keywords: ["tropical disco", "coupe"] },
+      { item: "Sherry & Spice Glass", category: "Glassware", supplier: "CHEFLINE", code: "P52790-000000-B01012", boxSize: 12, image: "https://i.ibb.co/G3Pk5drj/P52790-000000-B01012-Timeless-Vintage-DOF-12-5oz-35-5cl.jpg", keywords: ["sherry", "spice", "caprese"] },
+      { item: "Aperol Glass", category: "Glassware", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/210Hrfgr/Screenshot-2025-12-01-at-01-34-26.png", keywords: ["aperol", "spritz"], amazonLink: "https://www.amazon.co.uk/Aperol-Spray-Glasses-450-Set/dp/B0D25SRRHV" },
+      { item: "Shot Glass", category: "Glassware", supplier: "CHEFLINE", code: "G11110722", boxSize: 72, image: "https://i.ibb.co/7J3WXNjD/g11110722.jpg", keywords: ["shot", "shooter"] },
+      { item: "Cassata Glass", category: "Glassware", supplier: "CHEFLINE", code: "P51068-000000-C06024", boxSize: 24, image: "https://i.ibb.co/wZBRHyDw/download-11.jpg", keywords: ["cassata", "ice cream", "dessert"] },
+      { item: "Tartufo Glass", category: "Glassware", supplier: "CHEFLINE", code: "16-23-101", boxSize: 6, image: "https://i.ibb.co/4g08FYp1/download-12.jpg", keywords: ["tartufo", "banana split"] },
+
+      // BAR ITEMS
+      { item: "Cocktail Shaker", category: "Bar Items", supplier: "CHEFLINE", code: "BW3340", boxSize: null, image: "https://i.ibb.co/SwM9wv0m/UB5285-eed19062-24b2-427a-bfc5-0c95f9240965-1200x1200.webp", keywords: ["shaker", "cocktail shaker"] },
+      { item: "Ice Scoop", category: "Bar Items", supplier: "CHEFLINE", code: "A105", boxSize: null, image: "https://i.ibb.co/XfQLvJwT/41-Hn0-UXx-DCL.webp", keywords: ["ice scoop", "scoop"] },
+      { item: "Small Tongs", category: "Bar Items", supplier: "CHEFLINE", code: "137T", boxSize: null, image: "https://i.ibb.co/CKJm0mKq/619-Rg0-ZAAx-L-AC-UL495-SR435-495.jpg", keywords: ["tongs", "ice tongs"] },
+      { item: "Strainer", category: "Bar Items", supplier: "CHEFLINE", code: "BW3571", boxSize: null, image: "https://i.ibb.co/DHdVxhg8/3571-pic.jpg", keywords: ["strainer", "hawthorne"] },
+      { item: "Jigger", category: "Bar Items", supplier: "CHEFLINE", code: "F62003-000000-B01012", boxSize: 12, image: "https://i.ibb.co/m5wCc9DX/f62003-jigger.jpg", keywords: ["jigger", "measure"] },
+      { item: "Champagne Stopper", category: "Bar Items", supplier: "CHEFLINE", code: "BW3539", boxSize: null, image: "https://i.ibb.co/PGV8q82T/champagne-stopper-stainless-steel-1360664.webp", keywords: ["champagne stopper", "stopper"] },
+      { item: "Bar Knife", category: "Bar Items", supplier: "CHEFLINE", code: "67833", boxSize: null, image: "https://i.ibb.co/S4JS7KHL/dz79c.jpg", keywords: ["bar knife", "knife"] },
+      { item: "Bottle Pourer", category: "Bar Items", supplier: "CHEFLINE", code: "BW3515PTD", boxSize: 12, image: "https://i.ibb.co/VY9bQ83P/31-Rd1-HZy-TNL-AC-SY300-SX300-QL70-ML2.jpg", keywords: ["pourer", "speed pourer"] },
+      { item: "Bottle Cap Opener", category: "Bar Items", supplier: "CHEFLINE", code: "BW3536", boxSize: null, image: "https://i.ibb.co/60Q6KZ89/d866-core24-2626.webp", keywords: ["bottle opener", "bar blade"] },
+      { item: "Garnish Tray", category: "Bar Items", supplier: "CHEFLINE", code: "BW3763", boxSize: null, image: "https://i.ibb.co/JFrYmg41/3762-Stainless-Steel-5-Compartment-Condiment-Holder-CLOSED.webp", keywords: ["garnish tray", "condiment"] },
+      { item: "Lips Stencil for Cocktail", category: "Bar Items", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/6chzvh0X/Screenshot-2025-12-01-at-01-39-31.png", keywords: ["lips stencil", "stencil"], amazonLink: "https://www.amazon.co.uk/Stencil-Acrylic-Reusable-Cappuccino-Cocktail/dp/B0CR4DVNGL" },
+      { item: "Wine Bottle Opener", category: "Bar Items", supplier: "CHEFLINE", code: "18577C", boxSize: null, image: "https://i.ibb.co/bRq0mH7q/71u-Wrkyizn-L.jpg", keywords: ["wine opener", "corkscrew"] },
+      { item: "Wine Cooler", category: "Bar Items", supplier: "CHEFLINE", code: "BW3533", boxSize: null, image: "https://i.ibb.co/ksFHV60x/3533-Stainless-Steel-Wine-Cooler.jpg", keywords: ["wine cooler", "wine bucket"] },
+      { item: "Mixer Plastic Bottles", category: "Bar Items", supplier: "CHEFLINE", code: "8032A", boxSize: null, image: "https://i.ibb.co/HTxrPK9c/tablecraft-950ml-pourmaster-complete-white-bottle-with-orange-cap-and-spout-box-of-12-p13364-220411.jpg", keywords: ["mixer bottle", "plastic bottle"] },
+
+      // GARNISHES
+      { item: "Dry Orange", category: "Garnishes", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/7tyYcGBn/Screenshot-2025-12-01-at-01-40-45.png", keywords: ["dry orange", "dried orange"], amazonLink: "https://www.amazon.co.uk/Orange-Slices-Whole-Mimea-1kg/dp/B09R4DC2YQ" },
+      { item: "Flying Saucer Sweet", category: "Garnishes", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/FkLVzgYM/Screenshot-2025-12-01-at-01-41-03.png", keywords: ["flying saucer", "sweet"], amazonLink: "https://www.amazon.co.uk/Frisbee-Flying-Saucers-Assorted-Flavors/dp/B0D4ZP7PJ3" },
+      { item: "Rubber Ducks", category: "Garnishes", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/XZjYDgGR/Screenshot-2025-12-01-at-01-41-27.png", keywords: ["rubber duck", "duck"], amazonLink: "https://www.amazon.co.uk/WAMSOLE-Rubber-Toddlers-Squeak-Decorations/dp/B09CHD5GLT" },
+      { item: "Kiss from Mamma Red Sugar", category: "Garnishes", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/fYhZLN2X/Screenshot-2025-12-01-at-01-41-44.png", keywords: ["red sugar", "raspberry"], amazonLink: "https://www.amazon.co.uk/Raspberry-Freeze-Dried-Raspberries-Smoothie-Raspberrys/dp/B09MQZQNTH" },
+
+      // COFFEE
+      { item: "Cappuccino Cup", category: "Coffee", supplier: "CHEFLINE", code: "GK073", boxSize: 12, image: "https://i.ibb.co/JFKtXcd2/gk073-olympia-coloured-crockery.webp", keywords: ["cappuccino cup", "coffee cup"] },
+      { item: "Espresso Cup", category: "Coffee", supplier: "CHEFLINE", code: "GK070", boxSize: 12, image: "https://i.ibb.co/n8RnHdsq/C088-45-BRE-1edf35f1-a17f-413b-b46c-5ed8c8edbfa7-1500x1500.webp", keywords: ["espresso cup", "espresso"] },
+      { item: "Cappuccino Saucer", category: "Coffee", supplier: "CHEFLINE", code: "GL047", boxSize: 12, image: "https://i.ibb.co/dw26pSdp/download-4.jpg", keywords: ["cappuccino saucer", "saucer"] },
+      { item: "Espresso Saucer", category: "Coffee", supplier: "CHEFLINE", code: "GK085", boxSize: 12, image: "https://i.ibb.co/VY1jGrtZ/download-5.jpg", keywords: ["espresso saucer", "saucer"] },
+      { item: "Milk Pot", category: "Coffee", supplier: "CHEFLINE", code: "CM755", boxSize: 6, image: "https://i.ibb.co/TDQqr1gT/download-6.jpg", keywords: ["milk pot", "milk jug"] },
+      { item: "Tea Pot", category: "Coffee", supplier: "CHEFLINE", code: "GM594", boxSize: null, image: "https://i.ibb.co/VYj8G5pB/download-7.jpg", keywords: ["tea pot", "teapot"] },
+      { item: "Milk Steel Jug", category: "Coffee", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/d4SGwHk4/Screenshot-2025-12-01-at-01-43-28.png", keywords: ["milk jug", "frothing jug"], amazonLink: "https://www.amazon.co.uk/Frothing-Measurement-Decorating-Cappuccino-Suitable/dp/B0CQYKTDPV" },
+      { item: "Cocoa Shaker", category: "Coffee", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/Nnn4DRF9/Screenshot-2025-12-01-at-01-43-57.png", keywords: ["cocoa shaker", "chocolate shaker"], amazonLink: "https://www.amazon.co.uk/KitchenCraft-Stainless-Medium-Hole-Dredger-Shaker/dp/B0001IWWJS" },
+
+      // CUTLERY
+      { item: "Fork", category: "Cutlery", supplier: "CHEFLINE", code: "21136071", boxSize: 12, image: "https://i.ibb.co/xtRh3qLW/Cutlery-Tramontina-Polywood-Jumbo21136071.webp", keywords: ["fork", "table fork"] },
+      { item: "Knife", category: "Cutlery", supplier: "CHEFLINE", code: "21115075", boxSize: 12, image: "https://i.ibb.co/rXvMm7k/download-8.jpg", keywords: ["knife", "steak knife"] },
+      { item: "Red Scissor", category: "Cutlery", supplier: "CHEFLINE", code: "DM036U", boxSize: null, image: "https://i.ibb.co/SwwS5zPP/download-9.jpg", keywords: ["scissor", "scissors", "red scissor"] },
+      { item: "Dessert Spoon", category: "Cutlery", supplier: "CHEFLINE", code: "A4507", boxSize: 12, image: "https://i.ibb.co/KpfC2wRp/shopping.webp", keywords: ["dessert spoon", "spoon"] },
+      { item: "Teaspoon", category: "Cutlery", supplier: "CHEFLINE", code: "A4610", boxSize: 12, image: "https://i.ibb.co/Fb6Wn2Y0/shopping-1.webp", keywords: ["teaspoon", "tea spoon"] },
+
+      // PLATES
+      { item: "Small Red Plate", category: "Plates", supplier: "CHEFLINE", code: "187618MA", boxSize: 6, image: "https://i.ibb.co/2YdtJWdw/download-10.jpg", keywords: ["small plate", "red plate", "18cm"] },
+      { item: "Big Red Plate", category: "Plates", supplier: "CHEFLINE", code: "187624MA", boxSize: 6, image: "https://i.ibb.co/0RwTFMvK/shopping-2.webp", keywords: ["big plate", "red plate", "24cm"] },
+
+      // MISCELLANEOUS
+      { item: "Salt Shaker", category: "Miscellaneous", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/B2b3DJbG/Screenshot-2025-12-01-at-01-46-19.png", keywords: ["salt shaker", "salt"], amazonLink: "https://www.amazon.co.uk/Tala-Adjustable-Ceramic-Grinder-Restaurants/dp/B0F1WDKB2J" },
+      { item: "Pepper Shaker", category: "Miscellaneous", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/Gv8SqqjS/Screenshot-2025-12-01-at-01-46-47.png", keywords: ["pepper shaker", "pepper"], amazonLink: "https://www.amazon.co.uk/PEUGEOT-uSelect-Predefined-Settings-Certified/dp/B09WY2TYS7" },
+      { item: "Cannoli Bag", category: "Miscellaneous", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/k2pFgRkQ/Screenshot-2025-12-01-at-01-47-05.png", keywords: ["cannoli bag", "cellophane"], amazonLink: "https://www.amazon.co.uk/Cellophane-AUERVO-Resealable-Valentine-Chocolates/dp/B07S6F5SFQ" },
+      { item: "Red Basket", category: "Miscellaneous", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/8LPQHXCz/Screenshot-2025-12-01-at-01-47-20.png", keywords: ["red basket", "basket"], amazonLink: "https://www.amazon.co.uk/Rectangular-Washing-Plastic-Organizer-Portable/dp/B0CCK21GXB" },
+
+      // KITCHEN TABLEWARE
+      { item: "Olive Bowl", category: "Kitchen Tableware", supplier: "CHEFLINE", code: "EC2010", boxSize: 6, image: "https://i.ibb.co/9kXFnvYV/shopping-3.webp", keywords: ["olive bowl", "red bowl"] },
+      { item: "Metal Ramekin", category: "Kitchen Tableware", supplier: "CHEFLINE", code: "SS070", boxSize: 12, image: "https://i.ibb.co/ds2f3jqC/shopping-4.webp", keywords: ["ramekin", "metal ramekin"] },
+      { item: "Gold Dessert Stand", category: "Kitchen Tableware", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/ZpMLdfWz/Screenshot-2025-12-01-at-01-48-27.png", keywords: ["dessert stand", "gold stand"], amazonLink: "https://www.amazon.co.uk/Operitacx-Antique-Cupcake-Dessert-Birthday/dp/B0B5233ZYY" },
+      { item: "Greaseproof Paper", category: "Kitchen Tableware", supplier: "CHEFLINE", code: "PN1487FR", boxSize: null, image: "https://i.ibb.co/v4NYqLsm/download-13.jpg", keywords: ["greaseproof", "paper"] },
+      { item: "Paper Doilies 4.5 inch", category: "Kitchen Tableware", supplier: "CHEFLINE", code: "RD-45", boxSize: 250, image: "https://i.ibb.co/99z92ks6/Screenshot-2025-12-01-at-01-49-38.png", keywords: ["doilies", "4.5 inch"] },
+      { item: "Paper Doilies 5.5 inch", category: "Kitchen Tableware", supplier: "CHEFLINE", code: "RD-55", boxSize: 250, image: "https://i.ibb.co/99z92ks6/Screenshot-2025-12-01-at-01-49-38.png", keywords: ["doilies", "5.5 inch"] },
+      { item: "Paper Doilies 8.5 inch", category: "Kitchen Tableware", supplier: "CHEFLINE", code: "RD-85", boxSize: 250, image: "https://i.ibb.co/99z92ks6/Screenshot-2025-12-01-at-01-49-38.png", keywords: ["doilies", "8.5 inch"] },
+
+      // KITCHENWARE - WHITES FOOD
+      { item: "Pizza Peel", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-AN-37RF", boxSize: null, image: "https://i.ibb.co/cKZZ9gkG/download-14.jpg", keywords: ["pizza peel", "peel", "paddle"] },
+      { item: "Pizza Paddle", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-IN-F", boxSize: null, image: "https://i.ibb.co/VcBfNhHk/gi-metal-napoletana-turning-peel-in-170f-17cm-head-150cm-handle-T-1-D-2731-I-584-G-0-V-2-sellr-500x5.jpg", keywords: ["pizza paddle", "paddle"] },
+      { item: "Oven Brush", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-ACE-SP", boxSize: null, image: "https://i.ibb.co/R4dMNrdS/download-15.jpg", keywords: ["oven brush", "brush"] },
+      { item: "Blue Dough Scraper", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-AC-STF10", boxSize: null, image: "https://i.ibb.co/jkT4d0nd/shpatel-dlya-testa-gi-metal-ac-stf10-27sm-10-10sm-plastik.webp", keywords: ["dough scraper", "scraper"] },
+      { item: "Blue Dough Cutter", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-AC-TP", boxSize: null, image: "https://i.ibb.co/5Wgsj4k4/download-16.jpg", keywords: ["dough cutter", "cutter"] },
+      { item: "Pizza Cutters", category: "Kitchenware", supplier: "WHITES FOOD", code: "ALP-PC.04", boxSize: null, image: "https://i.ibb.co/23vdcR1t/dough-cutters.jpg", keywords: ["pizza cutter", "cutter"] },
+      { item: "15KG Scale", category: "Kitchenware", supplier: "WHITES FOOD", code: "M-B-100-15", boxSize: null, image: "https://i.ibb.co/gMtHKzWX/download-17.jpg", keywords: ["scale", "15kg", "weighing scale"] },
+      { item: "Dough Tray", category: "Kitchenware", supplier: "WHITES FOOD", code: "VAS010", boxSize: null, image: "https://i.ibb.co/PvMVG0YM/download-18.jpg", keywords: ["dough tray", "proofing tray"] },
+      { item: "Dough Lid", category: "Kitchenware", supplier: "WHITES FOOD", code: "GD-100002-W", boxSize: null, image: "https://i.ibb.co/4gWztq85/Screenshot-2025-12-01-at-01-52-14.png", keywords: ["dough lid", "lid"] },
+      { item: "Dough Trolley", category: "Kitchenware", supplier: "WHITES FOOD", code: "GD-CA60", boxSize: null, image: "https://i.ibb.co/PGFmrmCC/download-19.jpg", keywords: ["dough trolley", "trolley"] },
+
+      // KITCHENWARE - CHEFLINE
+      { item: "Plastic Container 10L", category: "Kitchenware", supplier: "CHEFLINE", code: "DA572", boxSize: null, image: "https://i.ibb.co/YCR0TNZ/download-20.jpg", keywords: ["container", "10l"] },
+      { item: "Plastic Container 4L", category: "Kitchenware", supplier: "CHEFLINE", code: "CS827", boxSize: null, image: "https://i.ibb.co/0pnyJP9p/download-23.jpg", keywords: ["container", "4l"] },
+      { item: "Container Lid 10L", category: "Kitchenware", supplier: "CHEFLINE", code: "DA573", boxSize: null, image: "https://i.ibb.co/rG3GLDwG/download-21.jpg", keywords: ["lid", "10l lid"] },
+      { item: "Container Lid 4L", category: "Kitchenware", supplier: "CHEFLINE", code: "CS829", boxSize: null, image: "https://i.ibb.co/LXby3qKx/download-22.jpg", keywords: ["lid", "4l lid"] },
+      { item: "Grey Basket", category: "Kitchenware", supplier: "CHEFLINE", code: "TOTE", boxSize: null, image: "https://i.ibb.co/PZ12JPzL/shopping-5.webp", keywords: ["grey basket", "tote"] },
+      { item: "Bench Can Opener", category: "Kitchenware", supplier: "CHEFLINE", code: "CE039", boxSize: null, image: "https://i.ibb.co/B5GJxNLF/shopping-6.webp", keywords: ["can opener", "tin opener"] },
+      { item: "Squeeze Bottles", category: "Kitchenware", supplier: "CHEFLINE", code: "12463C-12", boxSize: 12, image: "https://i.ibb.co/HL4RJXzk/shopping-7.webp", keywords: ["squeeze bottle", "sauce bottle"] },
+      { item: "Peeler", category: "Kitchenware", supplier: "CHEFLINE", code: "E9470", boxSize: null, image: "https://i.ibb.co/d47dgNtx/shopping-8.webp", keywords: ["peeler", "vegetable peeler"] },
+      { item: "Garlic Brush", category: "Kitchenware", supplier: "CHEFLINE", code: "39007", boxSize: null, image: "https://i.ibb.co/8gN8g4NF/shopping-9.webp", keywords: ["garlic brush", "brush"] },
+      { item: "Thermometer Probe", category: "Kitchenware", supplier: "CHEFLINE", code: "J203", boxSize: null, image: "https://i.ibb.co/84P5YbnW/Thermo.webp", keywords: ["thermometer", "probe"] },
+      { item: "Lemon Salt", category: "Kitchenware", supplier: "AMAZON", code: null, boxSize: null, image: "https://i.ibb.co/V0VSppKk/Screenshot-2025-12-01-at-01-55-04.png", keywords: ["lemon salt", "citric acid", "acid"], amazonLink: "https://www.amazon.co.uk/Grow-Chem-Preparation-Production-BK1-BG10/dp/B09VTJBQ4S" },
+      { item: "Chopping Boards", category: "Kitchenware", supplier: "CHEFLINE", code: "FLSET", boxSize: null, image: "https://i.ibb.co/Wvck5mm0/s-l1200.jpg", keywords: ["chopping board", "cutting board"] },
+    ];
+
+    // Fuzzy search
+    const levenshtein = (a, b) => {
+      const matrix = Array.from({ length: a.length + 1 }, (_, i) =>
+        Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+      );
+      for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+          matrix[i][j] = a[i - 1] === b[j - 1]
+            ? matrix[i - 1][j - 1]
+            : 1 + Math.min(matrix[i - 1][j], matrix[i][j - 1], matrix[i - 1][j - 1]);
+        }
+      }
+      return matrix[a.length][b.length];
+    };
+
+    const findFuzzyMatches = (query, items) => {
+      const q = query.toLowerCase().trim();
+      if (q.length < 3) return { matches: [], isMisspelling: false };
+      const matches = [];
+      let bestDistance = Infinity;
+      items.forEach(item => {
+        const itemWords = [item.item.toLowerCase(), ...item.keywords.map(k => k.toLowerCase())];
+        itemWords.forEach(word => {
+          const maxDist = word.length <= 5 ? 1 : word.length <= 7 ? 2 : 3;
+          const dist = levenshtein(q, word);
+          if (dist > 0 && dist <= maxDist && Math.abs(word.length - q.length) <= 2) {
+            if (dist < bestDistance) bestDistance = dist;
+            matches.push({ item, word, distance: dist });
+          }
+        });
+      });
+      const seen = new Set();
+      const uniqueMatches = matches.sort((a, b) => a.distance - b.distance).filter(m => {
+        if (seen.has(m.item.item)) return false;
+        seen.add(m.item.item);
+        return true;
+      }).slice(0, 3);
+      return { matches: uniqueMatches, isMisspelling: uniqueMatches.length > 0 && bestDistance <= 2 };
+    };
+
+    // Supplier styles - refined, subtle
+    const SUPPLIER_STYLES = {
+      'CHEFLINE': {
+        border: 'border-zinc-700/50',
+        borderActive: 'border-blue-500/60',
+        bg: 'bg-zinc-800/30',
+        text: 'text-blue-400',
+        badge: 'bg-blue-500/90 text-white',
+        header: 'from-blue-600 to-blue-700',
+      },
+      'AMAZON': {
+        border: 'border-zinc-700/50',
+        borderActive: 'border-amber-500/60',
+        bg: 'bg-zinc-800/30',
+        text: 'text-amber-400',
+        badge: 'bg-amber-500/90 text-black',
+        header: 'from-amber-500 to-orange-500',
+      },
+      'WHITES FOOD': {
+        border: 'border-zinc-700/50',
+        borderActive: 'border-emerald-500/60',
+        bg: 'bg-zinc-800/30',
+        text: 'text-emerald-400',
+        badge: 'bg-emerald-500/90 text-white',
+        header: 'from-emerald-600 to-green-600',
+      },
+    };
+
+    // ============================================
+    // ITEM CARD - Premium with supplier borders
+    // ============================================
+    function ItemCard({ item, onAdd, onImageClick }) {
+      const [qty, setQty] = useState(1);
+      const [pressed, setPressed] = useState(false);
+      const isBox = item.boxSize !== null;
+      const style = SUPPLIER_STYLES[item.supplier];
+      
+      // Supplier border colors
+      const borderColor = {
+        'CHEFLINE': 'border-blue-500/40 hover:border-blue-500/70',
+        'AMAZON': 'border-amber-500/40 hover:border-amber-500/70',
+        'WHITES FOOD': 'border-emerald-500/40 hover:border-emerald-500/70',
+      }[item.supplier] || 'border-zinc-700';
+
+      const glowColor = {
+        'CHEFLINE': 'hover:shadow-blue-500/10',
+        'AMAZON': 'hover:shadow-amber-500/10',
+        'WHITES FOOD': 'hover:shadow-emerald-500/10',
+      }[item.supplier] || '';
+      
+      return (
+        <div className={`bg-zinc-900/60 backdrop-blur-sm rounded-2xl border-2 ${borderColor} p-5 transition-all duration-200 hover:shadow-xl ${glowColor}`}>
+          <div className="flex gap-4">
+            {/* Image placeholder */}
+            <div 
+              className={`w-20 h-20 bg-zinc-800/50 rounded-xl flex items-center justify-center flex-shrink-0 border border-zinc-700/50 cursor-pointer hover:opacity-80 transition`}
+              onClick={() => item.image && onImageClick(item.image)}
+            >
+              {item.image ? (
+                <img src={item.image} alt={item.item} className="w-full h-full object-cover rounded-xl" />
+              ) : (
+                <svg className="w-9 h-9 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              )}
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-start gap-3 mb-1">
+                <h3 className="font-bold text-white text-xl leading-tight tracking-tight">{item.item}</h3>
+                <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${style.badge} flex-shrink-0 uppercase tracking-wide`}>
+                  {item.supplier === 'WHITES FOOD' ? 'WHITES' : item.supplier}
+                </span>
+              </div>
+              
+              <p className="text-sm text-zinc-500 font-mono mb-2">{item.code || 'No code'}</p>
+              
+              {/* Box indicator - PROMINENT */}
+              {isBox && (
+                <div className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-xl mb-3 shadow-lg shadow-red-600/25">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  <span className="font-extrabold text-base tracking-tight">{item.boxSize} PER BOX</span>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-3 mt-3">
+                <div className="flex items-center bg-zinc-800/80 rounded-xl border border-zinc-700/50">
+                  <button
+                    onClick={() => setQty(Math.max(1, qty - 1))}
+                    className="px-4 py-2.5 text-zinc-400 hover:text-white transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <span className="px-2 py-2 font-bold text-white text-lg min-w-[2.5rem] text-center">
+                    {qty}{isBox && <span className="text-zinc-400 text-sm ml-1">({qty * item.boxSize})</span>}
+                  </span>
+                  <button
+                    onClick={() => setQty(qty + 1)}
+                    className="px-4 py-2.5 text-zinc-400 hover:text-white transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+                <button
+                  onClick={() => { onAdd(item, qty); setQty(1); setPressed(true); setTimeout(() => setPressed(false), 150); }}
+                  className={`flex-1 bg-white text-black py-3 px-4 rounded-xl font-semibold text-base transition-all duration-150 ${pressed ? 'scale-95 bg-zinc-200' : 'hover:bg-zinc-100 active:scale-95'}`}
+                >
+                  Add {isBox ? `${qty} box${qty > 1 ? 'es' : ''}` : ''}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // SUPPLIER CART
+    // ============================================
+    function SupplierCart({ supplier, items, onSend, onUpdate, onRemove }) {
+      const style = SUPPLIER_STYLES[supplier];
+      
+      return (
+        <div className="glass rounded-2xl border border-zinc-700/50 overflow-hidden">
+          <div className={`bg-gradient-to-r ${style.header} px-5 py-4 flex justify-between items-center`}>
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-bold text-white">{supplier}</span>
+              <span className="text-white/60 text-sm font-medium">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
+            </div>
+            <button
+              onClick={onSend}
+              className="bg-white/20 hover:bg-white/30 text-white px-5 py-2 rounded-lg font-semibold text-sm transition backdrop-blur-sm"
+            >
+              Send Order
+            </button>
+          </div>
+          <div className="p-4 space-y-3">
+            {items.map((c, i) => {
+              const isBox = c.item.boxSize !== null;
+              const totalUnits = isBox ? c.quantity * c.item.boxSize : c.quantity;
+              return (
+                <div key={i} className="flex items-center justify-between p-4 bg-zinc-800/40 rounded-xl border border-zinc-700/30">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-base truncate">{c.item.item}</p>
+                    <p className="text-sm text-zinc-500 font-mono">{c.item.code}</p>
+                    {isBox && (
+                      <p className="text-sm text-zinc-400 font-medium mt-1">{c.quantity} box{c.quantity > 1 ? 'es' : ''} = {totalUnits} units</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center bg-zinc-900/80 border border-zinc-700/50 rounded-lg">
+                      <button onClick={() => onUpdate(c.item, -1)} className="px-3 py-2 text-zinc-400 hover:text-white transition">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
+                        </svg>
+                      </button>
+                      <span className="px-2 py-1.5 font-bold text-white">{c.quantity}</span>
+                      <button onClick={() => onUpdate(c.item, 1)} className="px-3 py-2 text-zinc-400 hover:text-white transition">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
+                    <button onClick={() => onRemove(c.item)} className="text-zinc-500 hover:text-red-400 p-2 transition">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================
+    // MAIN APP
+    // ============================================
+    function App() {
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [selectedLocation, setSelectedLocation] = useState('');
+      const [pinInput, setPinInput] = useState('');
+      const [pinError, setPinError] = useState('');
+      const [view, setView] = useState('search');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [cart, setCart] = useState([]);
+      const [notification, setNotification] = useState(null);
+      const [showRequestModal, setShowRequestModal] = useState(false);
+      const [customRequest, setCustomRequest] = useState({ description: '', link: '', note: '' });
+      const [showConfirmation, setShowConfirmation] = useState(null);
+      const [staffEmail, setStaffEmail] = useState('');
+      const [emailError, setEmailError] = useState('');
+      const [sending, setSending] = useState(false);
+      const [loginAnimating, setLoginAnimating] = useState(false);
+      const [imageZoom, setImageZoom] = useState(null);
+      const [pendingOrders, setPendingOrders] = useState([]);
+      const [itemRequests, setItemRequests] = useState([]);
+      
+      // Scan states
+      const [showScanModal, setShowScanModal] = useState(false);
+      const [scanImage, setScanImage] = useState(null);
+      const [scanning, setScanning] = useState(false);
+      const [scanResults, setScanResults] = useState([]);
+
+      // Cloudflare Worker URL for AI scanning
+      const WORKER_URL = "https://red-hot-mamma.dariosha10.workers.dev";
+
+      // Build detailed inventory descriptions for AI matching
+      const inventoryDescriptions = inventory.map(i => 
+        `"${i.item}" (${i.category}) - keywords: ${i.keywords.join(', ')}`
+      ).join('\n');
+
+      // Scan image with Claude API via Cloudflare Worker
+      const scanItemWithAI = async (base64Image, mediaType) => {
+        setScanning(true);
+        setScanResults([]);
+        
+        try {
+          const response = await fetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-20250514",
+              max_tokens: 800,
+              messages: [{
+                role: "user",
+                content: [
+                  {
+                    type: "image",
+                    source: {
+                      type: "base64",
+                      media_type: mediaType,
+                      data: base64Image
+                    }
+                  },
+                  {
+                    type: "text",
+                    text: `You are an expert at identifying restaurant/bar/kitchen items from photos. This is for an Italian pizzeria called Red Hot Mamma.
+
+LOOK CAREFULLY at this real-world photo. Describe what you physically see - the shape, material, color, size, and any distinguishing features.
+
+Then match it to items from this inventory list:
+
+${inventoryDescriptions}
+
+IDENTIFICATION TIPS FOR REAL PHOTOS:
+- GLASSES: Look at the shape - tall/short, stemmed/stemless, wide bowl/narrow. Wine glasses have stems and bowls. Beer glasses are tall and straight. Gin glasses are large balloon-shaped. Shot glasses are small and thick.
+- CUTLERY: Wooden handles = our Fork, Knife, Spoons. Look for the distinctive wood grain.
+- RED ITEMS: Red ceramic cups, plates, bowls are common in our inventory.
+- METAL ITEMS: Shiny steel = likely bar tools (shaker, jigger, tongs) or kitchen items (ramekin, milk jug).
+- PIZZA TOOLS: Long wooden handles = Pizza Peel or Paddle. Blue plastic = Dough Scraper/Cutter.
+- PLASTIC CONTAINERS: White/clear containers with lids = our 4L or 10L containers.
+
+BE GENEROUS WITH MATCHING. If you see something that COULD be an item, include it. Real photos have different angles, lighting, and backgrounds than product photos.
+
+Respond with ONLY this JSON:
+{"seen": "detailed description of what you see", "matches": ["Item Name 1", "Item Name 2"]}
+
+IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsure between similar items, include all possibilities.`
+                  }
+                ]
+              }]
+            })
+          });
+
+          const data = await response.json();
+          let responseText = data.content[0].text.trim();
+          
+          // Clean up response
+          responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          
+          console.log('AI Response:', responseText);
+          
+          // Parse the JSON response
+          let result = { seen: '', matches: [] };
+          try {
+            result = JSON.parse(responseText);
+          } catch (e) {
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              result = JSON.parse(jsonMatch[0]);
+            }
+          }
+
+          console.log('Parsed result:', result);
+
+          // Find matching inventory items
+          let foundItems = [];
+          if (result.matches && result.matches.length > 0) {
+            foundItems = result.matches.map(name => 
+              inventory.find(item => item.item.toLowerCase() === name.toLowerCase())
+            ).filter(Boolean);
+          }
+          
+          // Fuzzy fallback using what was seen
+          if (foundItems.length === 0 && result.seen) {
+            const seen = result.seen.toLowerCase();
+            foundItems = inventory.filter(item => 
+              seen.includes(item.item.toLowerCase().split(' ')[0]) ||
+              item.keywords.some(k => seen.includes(k.toLowerCase()))
+            ).slice(0, 3);
+          }
+
+          setScanResults(foundItems);
+          
+          if (foundItems.length === 0) {
+            showNotify(`Saw: "${result.seen || 'unknown'}" - no match found`, 'error');
+          } else {
+            showNotify(`Identified: ${result.seen}`);
+          }
+        } catch (error) {
+          console.error('Scan error:', error);
+          showNotify('Scan failed. Try again.', 'error');
+        }
+        
+        setScanning(false);
+      };
+
+      // Handle image file selection (with HEIC support)
+      const handleImageCapture = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setScanning(true);
+        setScanImage(null);
+        
+        try {
+          let processFile = file;
+          const fileName = file.name.toLowerCase();
+          const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif');
+          
+          // Convert HEIC to JPEG if needed
+          if (isHeic && typeof heic2any !== 'undefined') {
+            console.log('Converting HEIC to JPEG...');
+            showNotify('Converting image...');
+            try {
+              const convertedBlob = await heic2any({
+                blob: file,
+                toType: 'image/jpeg',
+                quality: 0.8
+              });
+              // heic2any can return array or single blob
+              const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+              processFile = new File([blob], 'converted.jpg', { type: 'image/jpeg' });
+            } catch (heicError) {
+              console.error('HEIC conversion failed:', heicError);
+              showNotify('HEIC conversion failed. Try screenshotting the photo first.', 'error');
+              setScanning(false);
+              return;
+            }
+          } else if (isHeic) {
+            showNotify('HEIC not supported. Screenshot the photo and try again.', 'error');
+            setScanning(false);
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64 = event.target.result;
+            setScanImage(base64);
+            
+            // Extract base64 data and media type
+            const [header, data] = base64.split(',');
+            const mediaType = header.match(/:(.*?);/)[1];
+            
+            scanItemWithAI(data, mediaType);
+          };
+          reader.onerror = () => {
+            showNotify('Failed to read image', 'error');
+            setScanning(false);
+          };
+          reader.readAsDataURL(processFile);
+        } catch (error) {
+          console.error('Image processing error:', error);
+          showNotify('Image failed. Try taking a screenshot instead.', 'error');
+          setScanning(false);
+        }
+      };
+
+      useEffect(() => {
+        if (!isLoggedIn) return;
+        const unsubOrders = db.collection('pendingOrders').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+          setPendingOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+        const unsubRequests = db.collection('itemRequests').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+          setItemRequests(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+        return () => { unsubOrders(); unsubRequests(); };
+      }, [isLoggedIn]);
+
+      const showNotify = (message, type = 'success') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+      };
+
+      const searchResults = useMemo(() => {
+        if (!searchQuery.trim()) return [];
+        const q = searchQuery.toLowerCase().trim();
+        return inventory.filter(item =>
+          item.item.toLowerCase().includes(q) ||
+          item.keywords.some(k => k.toLowerCase().includes(q)) ||
+          item.category.toLowerCase().includes(q)
+        );
+      }, [searchQuery]);
+
+      const fuzzyAnalysis = useMemo(() => {
+        if (searchResults.length > 0 || !searchQuery.trim()) return { matches: [], isMisspelling: false };
+        return findFuzzyMatches(searchQuery, inventory);
+      }, [searchQuery, searchResults]);
+
+      const addToCart = (item, qty = 1) => {
+        const existing = cart.find(c => c.item.item === item.item);
+        if (existing) {
+          setCart(cart.map(c => c.item.item === item.item ? { ...c, quantity: c.quantity + qty } : c));
+        } else {
+          setCart([...cart, { item, quantity: qty }]);
+        }
+        showNotify(`Added ${item.item}`);
+      };
+
+      const updateQuantity = (item, delta) => {
+        setCart(cart.map(c => {
+          if (c.item.item === item.item) {
+            const newQty = Math.max(0, c.quantity + delta);
+            return { ...c, quantity: newQty };
+          }
+          return c;
+        }).filter(c => c.quantity > 0));
+      };
+
+      const removeFromCart = (item) => setCart(cart.filter(c => c.item.item !== item.item));
+
+      const handleLogin = () => {
+        if (!selectedLocation) { setPinError('Please select a location'); return; }
+        if (pinInput === SITE_PINS[selectedLocation]) {
+          setLoginAnimating(true);
+          setTimeout(() => { setIsLoggedIn(true); setPinError(''); setLoginAnimating(false); }, 300);
+        } else {
+          setPinError('Incorrect PIN');
+          setPinInput('');
+        }
+      };
+
+      const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+      const sendOrderEmail = async (supplier) => {
+        if (!validateEmail(staffEmail)) { setEmailError('Please enter a valid email'); return; }
+        setSending(true);
+        setEmailError('');
+        const items = cart.filter(c => c.item.supplier === supplier);
+        if (items.length === 0) return;
+
+        const orderBody = `ORDER REQUEST FROM ${selectedLocation}\n${'═'.repeat(50)}\nDate: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-GB')}\nLocation: ${selectedLocation}\nDelivery: Account Address\n${'═'.repeat(50)}\n\nITEMS ORDERED:\n\n${items.map(c => {
+          const isBox = c.item.boxSize !== null;
+          const totalUnits = isBox ? c.quantity * c.item.boxSize : c.quantity;
+          return `Product Code: ${c.item.code}\nItem: ${c.item.item}\nQuantity: ${c.quantity}${isBox ? ` boxes (${totalUnits} units total)` : ' units'}`;
+        }).join('\n\n---\n\n')}\n\n${'═'.repeat(50)}\nThank you.`;
+
+        const toEmail = supplier === 'CHEFLINE' ? CONFIG.CHEFLINE_EMAIL : CONFIG.WHITES_FOOD_EMAIL;
+
+        try {
+          await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, {
+            to_email: toEmail, staff_email: staffEmail,
+            location: selectedLocation.replace('RED HOT MAMMA ', ''),
+            date: new Date().toLocaleDateString('en-GB'), order_body: orderBody,
+          });
+          setCart(cart.filter(c => c.item.supplier !== supplier));
+          setShowConfirmation(null);
+          setStaffEmail('');
+          showNotify(`Order sent to ${supplier}`);
+        } catch (error) {
+          console.error('Email error:', error);
+          showNotify('Failed to send email', 'error');
+        }
+        setSending(false);
+      };
+
+      const markInStock = async (order) => {
+        try {
+          await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, {
+            to_email: CONFIG.ADMIN_EMAIL, staff_email: CONFIG.ADMIN_EMAIL, location: 'Stock Update',
+            date: new Date().toLocaleDateString('en-GB'),
+            order_body: `STOCK AVAILABLE\n${'═'.repeat(50)}\n${selectedLocation.replace('RED HOT MAMMA ', '')} HAS STOCK FOR ${order.locationShort}\n\nItem: ${order.item}\nQuantity: ${order.quantity}${order.boxSize ? ` boxes (${order.quantity * order.boxSize} units)` : ' units'}\n\n${order.locationShort} can collect.\n${'═'.repeat(50)}`,
+          });
+          await db.collection('pendingOrders').doc(order.id).update({ status: 'in-stock', stockLocation: selectedLocation });
+          showNotify(`Notified ${order.locationShort}`);
+        } catch (error) { showNotify('Failed to notify', 'error'); }
+      };
+
+      const submitCustomRequest = async () => {
+        if (!customRequest.description.trim()) { showNotify('Please describe what you need', 'error'); return; }
+        try {
+          // Save to Firebase
+          await db.collection('itemRequests').add({
+            description: customRequest.description, link: customRequest.link, note: customRequest.note,
+            location: selectedLocation, locationShort: selectedLocation.replace('RED HOT MAMMA ', ''),
+            createdAt: new Date(), status: 'pending',
+          });
+          
+          // Send email notification
+          try {
+            await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, {
+              to_email: CONFIG.ADMIN_EMAIL, 
+              staff_email: CONFIG.ADMIN_EMAIL, 
+              location: selectedLocation.replace('RED HOT MAMMA ', '') + ' - Item Request',
+              date: new Date().toLocaleDateString('en-GB'),
+              order_body: `NEW ITEM REQUEST\n${'═'.repeat(40)}\n\nFrom: ${selectedLocation.replace('RED HOT MAMMA ', '')}\n\nItem Needed: ${customRequest.description}\n\nLink: ${customRequest.link || 'Not provided'}\n\nNotes: ${customRequest.note || 'None'}\n\n${'═'.repeat(40)}`,
+            });
+            console.log('Email sent successfully');
+          } catch (emailError) {
+            console.error('Email error:', emailError);
+            // Still show success since Firebase saved it
+          }
+          
+          setCustomRequest({ description: '', link: '', note: '' });
+          setShowRequestModal(false);
+          showNotify('Request submitted!');
+        } catch (error) { 
+          console.error('Submit error:', error);
+          showNotify('Failed to submit', 'error'); 
+        }
+      };
+
+      const pendingFromOthers = pendingOrders.filter(o => o.location !== selectedLocation && o.status === 'pending');
+      const myPending = pendingOrders.filter(o => o.location === selectedLocation);
+      const cheflineItems = cart.filter(c => c.item.supplier === 'CHEFLINE');
+      const whitesItems = cart.filter(c => c.item.supplier === 'WHITES FOOD');
+      const amazonItems = cart.filter(c => c.item.supplier === 'AMAZON');
+
+      // ==========================================
+      // LOGIN SCREEN - Clean, premium, subtle red
+      // ==========================================
+      if (!isLoggedIn) {
+        return (
+          <div className={`min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 transition-opacity duration-300 ${loginAnimating ? 'opacity-0' : 'opacity-100'}`}>
+            <div className="w-full max-w-sm">
+              {/* Mamma Logo */}
+              <div className="text-center mb-10">
+                <img 
+                  src="https://i.ibb.co/wZ2Q68Xh/Dec-1-2025-12-03-03-PM.png" 
+                  alt="Mamma" 
+                  className="w-36 h-auto mx-auto mb-5 drop-shadow-2xl"
+                />
+                <h1 className="text-2xl font-bold text-white tracking-tight">Mamma's Ordering Hub</h1>
+                <p className="text-zinc-500 mt-2 text-base font-medium">Home of all your ordering</p>
+              </div>
+
+              {/* Login Card */}
+              <div className="glass-heavy rounded-3xl p-7 border border-zinc-800/80">
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2.5">Location</label>
+                    <select
+                      value={selectedLocation}
+                      onChange={(e) => { setSelectedLocation(e.target.value); setPinError(''); }}
+                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all appearance-none cursor-pointer"
+                      style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2771717a' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em' }}
+                    >
+                      <option value="">Select your site</option>
+                      {locations.map(loc => (
+                        <option key={loc} value={loc}>{loc.replace('RED HOT MAMMA ', '')}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {selectedLocation && (
+                    <div className="animate-fadeIn">
+                      <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2.5">PIN</label>
+                      <input
+                        type="password"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={4}
+                        value={pinInput}
+                        onChange={(e) => { setPinInput(e.target.value.replace(/\D/g, '')); setPinError(''); }}
+                        onKeyDown={(e) => e.key === 'Enter' && pinInput.length === 4 && handleLogin()}
+                        placeholder="••••"
+                        className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-center text-2xl tracking-[0.5em] font-semibold focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all placeholder:text-zinc-700 placeholder:tracking-[0.3em]"
+                      />
+                      {pinError && (
+                        <p className="text-red-400 text-sm font-medium mt-2.5 text-center animate-shake">{pinError}</p>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleLogin}
+                    disabled={!selectedLocation || pinInput.length !== 4}
+                    className="w-full bg-white text-black py-3.5 rounded-xl text-base font-semibold hover:bg-zinc-100 transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ==========================================
+      // MAIN APP
+      // ==========================================
+      return (
+        <div className="min-h-screen bg-[#0a0a0a] text-white">
+          {/* Notification */}
+          {notification && (
+            <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold animate-slideDown ${
+              notification.type === 'error' ? 'bg-red-500 text-white' : 'bg-white text-black'
+            }`}>
+              {notification.message}
+            </div>
+          )}
+
+          {/* Image Zoom Modal */}
+          {imageZoom && (
+            <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4 animate-fadeIn" onClick={() => setImageZoom(null)}>
+              <div className="relative max-w-2xl w-full animate-scaleIn">
+                <img src={imageZoom} alt="Zoomed" className="w-full rounded-2xl" />
+                <button className="absolute top-3 right-3 w-9 h-9 bg-black/60 rounded-full flex items-center justify-center" onClick={() => setImageZoom(null)}>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Confirmation Modal */}
+          {showConfirmation && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+              <div className="glass-heavy rounded-2xl p-6 w-full max-w-md border border-zinc-800 animate-scaleIn">
+                <h2 className="text-xl font-bold text-white mb-1">Send Order</h2>
+                <p className="text-zinc-400 text-sm font-medium mb-4">{showConfirmation}</p>
+                
+                <div className="bg-zinc-900/60 rounded-xl p-4 mb-4 max-h-44 overflow-auto border border-zinc-800/50">
+                  {cart.filter(c => c.item.supplier === showConfirmation).map((c, idx) => {
+                    const isBox = c.item.boxSize !== null;
+                    const totalUnits = isBox ? c.quantity * c.item.boxSize : c.quantity;
+                    return (
+                      <div key={idx} className="flex justify-between py-2.5 border-b border-zinc-800/50 last:border-0">
+                        <span className="font-medium text-white">{c.item.item}</span>
+                        <span className="text-zinc-400 font-medium text-sm">
+                          {c.quantity} {isBox ? `box${c.quantity > 1 ? 'es' : ''} (${totalUnits})` : 'units'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Your Email</label>
+                  <input
+                    type="email"
+                    value={staffEmail}
+                    onChange={(e) => { setStaffEmail(e.target.value); setEmailError(''); }}
+                    placeholder="you@email.com"
+                    className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
+                  />
+                  {emailError && <p className="text-red-400 text-sm font-medium mt-2">{emailError}</p>}
+                  <p className="text-xs text-zinc-600 mt-2">You'll receive a copy of this order</p>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => sendOrderEmail(showConfirmation)}
+                    disabled={sending || !staffEmail}
+                    className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-zinc-100 transition disabled:opacity-40 active:scale-[0.98]"
+                  >
+                    {sending ? 'Sending...' : 'Send Order'}
+                  </button>
+                  <button
+                    onClick={() => { setShowConfirmation(null); setStaffEmail(''); setEmailError(''); }}
+                    className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Request Modal */}
+          {showRequestModal && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+              <div className="glass-heavy rounded-2xl p-6 w-full max-w-md border border-zinc-800 animate-scaleIn">
+                <h2 className="text-xl font-bold text-white mb-1">Request New Item</h2>
+                <p className="text-zinc-400 text-sm font-medium mb-5">Not in database? Request it here</p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">What do you need?</label>
+                    <input
+                      type="text"
+                      value={customRequest.description}
+                      onChange={(e) => setCustomRequest({ ...customRequest, description: e.target.value })}
+                      placeholder="e.g. Fly trap, door stop..."
+                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Product Link (optional)</label>
+                    <input
+                      type="url"
+                      value={customRequest.link}
+                      onChange={(e) => setCustomRequest({ ...customRequest, link: e.target.value })}
+                      placeholder="https://amazon.co.uk/..."
+                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Notes (optional)</label>
+                    <textarea
+                      value={customRequest.note}
+                      onChange={(e) => setCustomRequest({ ...customRequest, note: e.target.value })}
+                      placeholder="Any extra details..."
+                      rows={2}
+                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none resize-none"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 mt-5">
+                  <button onClick={submitCustomRequest} className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]">
+                    Submit Request
+                  </button>
+                  <button onClick={() => setShowRequestModal(false)} className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Scan Modal */}
+          {showScanModal && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+              <div className="glass-heavy rounded-2xl p-6 w-full max-w-md border border-zinc-800 animate-scaleIn">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold text-white">Scan Item</h2>
+                  <button onClick={() => { setShowScanModal(false); setScanImage(null); setScanResults([]); }} className="text-zinc-400 hover:text-white p-1">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {!scanImage && !scanning ? (
+                  <div className="space-y-4">
+                    <p className="text-zinc-400 text-sm">Take a photo or upload an image to identify items</p>
+                    
+                    {/* Camera capture */}
+                    <label className="flex flex-col items-center justify-center w-full h-40 bg-zinc-900 border-2 border-dashed border-zinc-700 rounded-xl cursor-pointer hover:border-zinc-500 transition">
+                      <svg className="w-12 h-12 text-zinc-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="text-zinc-400 font-medium">Take Photo</span>
+                      <input type="file" accept="image/*,.heic,.heif" capture="environment" className="hidden" onChange={handleImageCapture} />
+                    </label>
+
+                    {/* Upload from gallery */}
+                    <label className="flex items-center justify-center w-full py-3 bg-zinc-800 border border-zinc-700 rounded-xl cursor-pointer hover:bg-zinc-700 transition">
+                      <svg className="w-5 h-5 text-zinc-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-zinc-300 font-medium">Upload from Gallery</span>
+                      <input type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleImageCapture} />
+                    </label>
+                  </div>
+                ) : !scanImage && scanning ? (
+                  <div className="h-48 bg-zinc-900 rounded-xl flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                      <p className="text-white font-medium">Processing image...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Preview image */}
+                    <div className="relative">
+                      <img src={scanImage} alt="Scanned" className="w-full h-48 object-contain bg-zinc-900 rounded-xl" />
+                      {scanning && (
+                        <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                            <p className="text-white font-medium">Identifying...</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Results */}
+                    {!scanning && scanResults.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-zinc-400">Found {scanResults.length} item{scanResults.length > 1 ? 's' : ''}:</p>
+                        {scanResults.map((item, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-zinc-800 rounded-xl border border-zinc-700">
+                            <div className="flex items-center gap-3">
+                              <img src={item.image} alt={item.item} className="w-12 h-12 object-cover rounded-lg bg-zinc-900" />
+                              <div>
+                                <p className="font-semibold text-white">{item.item}</p>
+                                <p className="text-xs text-zinc-500">{item.supplier}</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => { addToCart(item, 1); setShowScanModal(false); setScanImage(null); setScanResults([]); }}
+                              className="bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm hover:bg-zinc-100 transition"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {!scanning && scanResults.length === 0 && (
+                      <div className="text-center py-4">
+                        <p className="text-zinc-400 text-sm">No matching items found</p>
+                      </div>
+                    )}
+
+                    {/* Retry button */}
+                    <button
+                      onClick={() => { setScanImage(null); setScanResults([]); }}
+                      className="w-full py-3 bg-zinc-800 rounded-xl font-semibold text-white hover:bg-zinc-700 transition"
+                    >
+                      Try Another Photo
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Header */}
+          <header className="glass-heavy border-b border-zinc-800/80 sticky top-0 z-30">
+            <div className="max-w-2xl mx-auto px-4 py-3.5">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-lg font-bold text-white tracking-tight">Mamma's Ordering</h1>
+                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{selectedLocation.replace('RED HOT MAMMA ', '')}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {[
+                    { id: 'search', label: 'Search' },
+                    { id: 'pending', label: 'Stock' },
+                    { id: 'cart', label: 'Cart', count: cart.length },
+                    { id: 'requests', label: 'Requests', count: itemRequests.filter(r => r.status === 'pending').length },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setView(tab.id)}
+                      className={`px-3.5 py-2 rounded-lg font-medium text-sm transition-all relative ${
+                        view === tab.id
+                          ? 'bg-white text-black'
+                          : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                      }`}
+                    >
+                      {tab.label}
+                      {tab.count > 0 && (
+                        <span className={`absolute -top-1 -right-1 w-4 h-4 text-[10px] rounded-full flex items-center justify-center font-bold ${
+                          view === tab.id ? 'bg-red-500 text-white' : 'bg-zinc-600 text-white'
+                        }`}>
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <main className="max-w-2xl mx-auto p-4 pb-24">
+            {/* SEARCH VIEW */}
+            {view === 'search' && (
+              <>
+                <div className="sticky top-[61px] z-20 bg-[#0a0a0a] pb-4 pt-2">
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search items..."
+                        className="w-full glass border border-zinc-800 rounded-xl px-4 py-3.5 pl-11 text-base font-medium text-white placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none transition-all"
+                      />
+                      <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      {searchQuery && (
+                        <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition p-1">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {/* Scan button */}
+                    <button
+                      onClick={() => setShowScanModal(true)}
+                      className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-red-600 to-red-700 rounded-xl text-white hover:from-red-500 hover:to-red-600 transition-all active:scale-95 shadow-lg shadow-red-900/30"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {searchQuery && searchResults.length === 0 && (
+                  <div className="mb-4 animate-fadeIn">
+                    {fuzzyAnalysis.isMisspelling && fuzzyAnalysis.matches.length > 0 ? (
+                      <div className="glass rounded-xl border border-zinc-800 p-4">
+                        <p className="text-sm font-medium text-zinc-400 mb-3">Did you mean:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {fuzzyAnalysis.matches.map((s, i) => (
+                            <button key={i} onClick={() => setSearchQuery(s.item.item)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white text-sm font-medium transition">
+                              {s.item.item}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="glass rounded-xl border border-zinc-800 p-8 text-center">
+                        <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-6 h-6 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <p className="text-white text-base font-semibold mb-1">No items found</p>
+                        <p className="text-zinc-500 text-sm mb-5">"{searchQuery}" is not in the database</p>
+                        <button
+                          onClick={() => { setCustomRequest({ ...customRequest, description: searchQuery }); setShowRequestModal(true); }}
+                          className="bg-white text-black px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]"
+                        >
+                          Request This Item
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {searchResults.length > 0 ? (
+                  <div className="space-y-3">
+                    {searchResults.map((item, i) => (
+                      <ItemCard key={i} item={item} onAdd={addToCart} onImageClick={setImageZoom} />
+                    ))}
+                  </div>
+                ) : !searchQuery ? (
+                  <div className="text-center py-16">
+                    <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-5">
+                      <svg className="w-7 h-7 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-white text-lg font-semibold">Search for items</p>
+                    <p className="text-zinc-500 text-sm mt-1 mb-6">Try "wine glass", "fork", or "pizza peel"</p>
+                    
+                    <div className="flex items-center justify-center gap-2 text-zinc-500 text-sm">
+                      <span>or</span>
+                    </div>
+                    
+                    <button
+                      onClick={() => setShowScanModal(true)}
+                      className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-500 hover:to-red-600 transition shadow-lg shadow-red-900/30"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Scan Item
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            )}
+
+            {/* PENDING / STOCK VIEW */}
+            {view === 'pending' && (
+              <>
+                {pendingFromOthers.length > 0 && (
+                  <div className="mb-6">
+                    <h2 className="text-base font-semibold text-white mb-3">Other Sites Need</h2>
+                    <div className="space-y-3">
+                      {pendingFromOthers.map((order) => (
+                        <div key={order.id} className="glass rounded-xl border border-amber-500/30 p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <span className="text-xs font-semibold text-amber-500 uppercase">{order.locationShort}</span>
+                              <p className="text-base font-semibold text-white mt-0.5">{order.item}</p>
+                              <p className="text-sm text-zinc-400">
+                                {order.quantity} {order.boxSize ? `boxes (${order.quantity * order.boxSize} units)` : 'units'}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => markInStock(order)}
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-lg text-sm font-semibold transition"
+                          >
+                            I Have This In Stock
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <h2 className="text-base font-semibold text-white mb-3">Your Pending Orders</h2>
+                  {myPending.length === 0 ? (
+                    <div className="text-center py-10 glass rounded-xl border border-zinc-800">
+                      <p className="text-zinc-500 text-sm">No pending orders</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {myPending.map((order) => (
+                        <div key={order.id} className={`glass rounded-xl border p-4 ${order.status === 'in-stock' ? 'border-emerald-500/50' : 'border-zinc-800'}`}>
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-base font-semibold text-white">{order.item}</p>
+                              <p className="text-sm text-zinc-400">{order.quantity} {order.boxSize ? `boxes` : 'units'}</p>
+                            </div>
+                            {order.status === 'in-stock' && (
+                              <span className="px-3 py-1.5 bg-emerald-600/20 text-emerald-400 rounded-lg text-xs font-semibold">
+                                In Stock @ {order.stockLocation?.replace('RED HOT MAMMA ', '')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {pendingFromOthers.length === 0 && myPending.length === 0 && (
+                  <div className="text-center py-20">
+                    <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-5">
+                      <svg className="w-7 h-7 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <p className="text-white text-lg font-semibold">Cross-Site Stock</p>
+                    <p className="text-zinc-500 text-sm mt-1">See what other sites need</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* CART VIEW */}
+            {view === 'cart' && (
+              <>
+                {cart.length === 0 ? (
+                  <div className="text-center py-20">
+                    <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-5">
+                      <svg className="w-7 h-7 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                    </div>
+                    <p className="text-white text-lg font-semibold">Your cart is empty</p>
+                    <button onClick={() => setView('search')} className="mt-5 bg-white text-black px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]">
+                      Start Shopping
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {cheflineItems.length > 0 && (
+                      <SupplierCart supplier="CHEFLINE" items={cheflineItems} onSend={() => setShowConfirmation('CHEFLINE')} onUpdate={updateQuantity} onRemove={removeFromCart} />
+                    )}
+                    {whitesItems.length > 0 && (
+                      <SupplierCart supplier="WHITES FOOD" items={whitesItems} onSend={() => setShowConfirmation('WHITES FOOD')} onUpdate={updateQuantity} onRemove={removeFromCart} />
+                    )}
+                    {amazonItems.length > 0 && (
+                      <div className="glass rounded-2xl border border-zinc-700/50 overflow-hidden">
+                        <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-4 flex justify-between items-center">
+                          <span className="text-lg font-bold text-black">Amazon</span>
+                          <span className="text-black/60 text-sm font-medium">{amazonItems.length} items</span>
+                        </div>
+                        <div className="p-4 space-y-3">
+                          {amazonItems.map((c, i) => (
+                            <div key={i} className="flex items-center justify-between p-4 bg-zinc-800/40 rounded-xl border border-zinc-700/30">
+                              <div className="flex-1">
+                                <p className="font-semibold text-white">{c.item.item}</p>
+                                <p className="text-sm text-zinc-500">Qty: {c.quantity}</p>
+                              </div>
+                              <div className="flex gap-2">
+                                <a href={c.item.amazonLink} target="_blank" rel="noopener noreferrer" className="bg-amber-500 text-black px-4 py-2 rounded-lg font-semibold text-sm hover:bg-amber-400 transition">
+                                  View on Amazon
+                                </a>
+                                <button onClick={() => removeFromCart(c.item)} className="text-zinc-500 hover:text-red-400 p-2 transition">
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="px-5 pb-4">
+                          <p className="text-sm text-zinc-500">Amazon items need to be ordered manually</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* REQUESTS VIEW */}
+            {view === 'requests' && (
+              <>
+                {itemRequests.length === 0 ? (
+                  <div className="text-center py-20">
+                    <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-5">
+                      <svg className="w-7 h-7 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <p className="text-white text-lg font-semibold">No requests yet</p>
+                    <p className="text-zinc-500 text-sm mt-1">Item requests will appear here</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {itemRequests.map(r => (
+                      <div key={r.id} className={`glass rounded-xl border p-4 ${
+                        r.status === 'pending' ? 'border-amber-500/40' :
+                        r.status === 'approved' ? 'border-emerald-500/40' : 'border-red-500/40'
+                      }`}>
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="text-base font-semibold text-white">{r.description}</p>
+                            <p className="text-xs font-medium text-zinc-500 uppercase">{r.locationShort}</p>
+                          </div>
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
+                            r.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
+                            r.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
+                          }`}>
+                            {r.status}
+                          </span>
+                        </div>
+                        {r.link && (
+                          <a href={r.link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm block mb-1 truncate">
+                            {r.link}
+                          </a>
+                        )}
+                        {r.note && <p className="text-zinc-400 text-sm">{r.note}</p>}
+                        <p className="text-xs text-zinc-600 mt-2">
+                          {r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString('en-GB') : new Date(r.createdAt).toLocaleString('en-GB')}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </main>
+
+          {/* Logout */}
+          <button
+            onClick={() => { setIsLoggedIn(false); setSelectedLocation(''); setPinInput(''); setCart([]); }}
+            className="fixed bottom-5 left-5 glass border border-zinc-800 text-zinc-500 px-4 py-2 rounded-lg font-medium text-sm hover:text-white hover:border-zinc-600 transition"
+          >
+            Sign Out
+          </button>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
