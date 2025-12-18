@@ -41,11 +41,18 @@
     // ============================================
     const CONFIG = {
       CHEFLINE_EMAIL: "gurdeep@chefline.co.uk",
-      WHITES_FOOD_EMAIL: "orders@whitesfood.com",
       ADMIN_EMAIL: "dariosha10@gmail.com",
-      EMAILJS_SERVICE_ID: "service_lj58e9t",
+      EMAILJS_SERVICE_ID: "service_whduped",
       EMAILJS_TEMPLATE_ID: "template_i766kzf",
       EMAILJS_PUBLIC_KEY: "anFP4Hq_7fYx6iutL",
+    };
+
+    // Manager emails for CC on orders
+    const MANAGER_EMAILS = {
+      "RED HOT MAMMA WARWICK": "Warwick.manager@redhotmamma.co.uk",
+      "RED HOT MAMMA LEAMINGTON": "Leamington.manager@redhotmamma.co.uk",
+      "RED HOT MAMMA STRATFORD": "Stratford.manager@redhotmamma.co.uk",
+      "RED HOT MAMMA SOLIHULL": "Solihull.manager@redhotmamma.co.uk",
     };
 
     const firebaseConfig = {
@@ -68,12 +75,11 @@
       "RED HOT MAMMA STRATFORD": "1564",
     };
 
-    // User credentials - username and password per location
     const SITE_CREDENTIALS = {
-      "RED HOT MAMMA WARWICK": { username: "warwick", password: "mamma1980" },
-      "RED HOT MAMMA LEAMINGTON": { username: "leamington", password: "mamma2018" },
-      "RED HOT MAMMA SOLIHULL": { username: "solihull", password: "mamma2385" },
-      "RED HOT MAMMA STRATFORD": { username: "stratford", password: "mamma1564" },
+      "RED HOT MAMMA WARWICK": { username: "warwick.manager@redhotmamma.co.uk", password: "mamma1980" },
+      "RED HOT MAMMA LEAMINGTON": { username: "leamington.manager@redhotmamma.co.uk", password: "mamma2018" },
+      "RED HOT MAMMA SOLIHULL": { username: "solihull.manager@redhotmamma.co.uk", password: "mamma2385" },
+      "RED HOT MAMMA STRATFORD": { username: "stratford.manager@redhotmamma.co.uk", password: "mamma1564" },
     };
 
     const locations = Object.keys(SITE_PINS);
@@ -156,17 +162,17 @@
       { item: "Paper Doilies 5.5 inch", category: "Kitchen Tableware", supplier: "CHEFLINE", code: "RD-55", boxSize: 250, image: "https://i.ibb.co/99z92ks6/Screenshot-2025-12-01-at-01-49-38.png", keywords: ["doilies", "5.5 inch"] },
       { item: "Paper Doilies 8.5 inch", category: "Kitchen Tableware", supplier: "CHEFLINE", code: "RD-85", boxSize: 250, image: "https://i.ibb.co/99z92ks6/Screenshot-2025-12-01-at-01-49-38.png", keywords: ["doilies", "8.5 inch"] },
 
-      // KITCHENWARE - WHITES FOOD
-      { item: "Pizza Peel", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-AN-37RF", boxSize: null, image: "https://i.ibb.co/cKZZ9gkG/download-14.jpg", keywords: ["pizza peel", "peel", "paddle"] },
-      { item: "Pizza Paddle", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-IN-F", boxSize: null, image: "https://i.ibb.co/VcBfNhHk/gi-metal-napoletana-turning-peel-in-170f-17cm-head-150cm-handle-T-1-D-2731-I-584-G-0-V-2-sellr-500x5.jpg", keywords: ["pizza paddle", "paddle"] },
-      { item: "Oven Brush", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-ACE-SP", boxSize: null, image: "https://i.ibb.co/R4dMNrdS/download-15.jpg", keywords: ["oven brush", "brush"] },
-      { item: "Blue Dough Scraper", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-AC-STF10", boxSize: null, image: "https://i.ibb.co/jkT4d0nd/shpatel-dlya-testa-gi-metal-ac-stf10-27sm-10-10sm-plastik.webp", keywords: ["dough scraper", "scraper"] },
-      { item: "Blue Dough Cutter", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-AC-TP", boxSize: null, image: "https://i.ibb.co/5Wgsj4k4/download-16.jpg", keywords: ["dough cutter", "cutter"] },
-      { item: "Pizza Cutters", category: "Kitchenware", supplier: "WHITES FOOD", code: "ALP-PC.04", boxSize: null, image: "https://i.ibb.co/23vdcR1t/dough-cutters.jpg", keywords: ["pizza cutter", "cutter"] },
-      { item: "15KG Scale", category: "Kitchenware", supplier: "WHITES FOOD", code: "M-B-100-15", boxSize: null, image: "https://i.ibb.co/gMtHKzWX/download-17.jpg", keywords: ["scale", "15kg", "weighing scale"] },
-      { item: "Dough Tray", category: "Kitchenware", supplier: "WHITES FOOD", code: "VAS010", boxSize: null, image: "https://i.ibb.co/PvMVG0YM/download-18.jpg", keywords: ["dough tray", "proofing tray"] },
-      { item: "Dough Lid", category: "Kitchenware", supplier: "WHITES FOOD", code: "GD-100002-W", boxSize: null, image: "https://i.ibb.co/4gWztq85/Screenshot-2025-12-01-at-01-52-14.png", keywords: ["dough lid", "lid"] },
-      { item: "Dough Trolley", category: "Kitchenware", supplier: "WHITES FOOD", code: "GD-CA60", boxSize: null, image: "https://i.ibb.co/PGFmrmCC/download-19.jpg", keywords: ["dough trolley", "trolley"] },
+      // KITCHENWARE - WHITES FOOD (with links - no email ordering)
+      { item: "Pizza Peel", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-AN-37RF", boxSize: null, image: "https://i.ibb.co/cKZZ9gkG/download-14.jpg", keywords: ["pizza peel", "peel", "paddle"], whitesFoodLink: "https://pizzaequipment.co.uk/product/napoletana-large-pizza-peels/" },
+      { item: "Pizza Paddle", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-IN-F", boxSize: null, image: "https://i.ibb.co/VcBfNhHk/gi-metal-napoletana-turning-peel-in-170f-17cm-head-150cm-handle-T-1-D-2731-I-584-G-0-V-2-sellr-500x5.jpg", keywords: ["pizza paddle", "paddle", "turning peel"], whitesFoodLink: "https://pizzaequipment.co.uk/product/napoletana-pizza-turning-peel-small-perforated/?attribute_select-size=IN-23F%20-%20%E2%8C%8023cm%20-%20175cm%20length" },
+      { item: "Oven Brush", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-ACE-SP", boxSize: null, image: "https://i.ibb.co/R4dMNrdS/download-15.jpg", keywords: ["oven brush", "brush"], whitesFoodLink: "https://pizzaequipment.co.uk/product/evoluzione-oven-brush/" },
+      { item: "Blue Dough Scraper", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-AC-STF10", boxSize: null, image: "https://i.ibb.co/jkT4d0nd/shpatel-dlya-testa-gi-metal-ac-stf10-27sm-10-10sm-plastik.webp", keywords: ["dough scraper", "scraper"], whitesFoodLink: "https://pizzaequipment.co.uk/product/flexible-non-scratch-scraper/" },
+      { item: "Blue Dough Cutter", category: "Kitchenware", supplier: "WHITES FOOD", code: "GI-AC-TP", boxSize: null, image: "https://i.ibb.co/5Wgsj4k4/download-16.jpg", keywords: ["dough cutter", "cutter"], whitesFoodLink: "https://pizzaequipment.co.uk/product/heavy-duty-non-scratching-scraper/" },
+      { item: "Pizza Cutters", category: "Kitchenware", supplier: "WHITES FOOD", code: "ALP-PC.04", boxSize: null, image: "https://i.ibb.co/23vdcR1t/dough-cutters.jpg", keywords: ["pizza cutter", "cutter"], whitesFoodLink: "https://pizzaequipment.co.uk/product/pizza-cutter-wheels/" },
+      { item: "15KG Scale", category: "Kitchenware", supplier: "WHITES FOOD", code: "M-B-100-15", boxSize: null, image: "https://i.ibb.co/gMtHKzWX/download-17.jpg", keywords: ["scale", "15kg", "weighing scale"], whitesFoodLink: "https://pizzaequipment.co.uk/product/waterproof-bench-scale-1g-15kg/" },
+      { item: "Dough Tray", category: "Kitchenware", supplier: "WHITES FOOD", code: "VAS010", boxSize: null, image: "https://i.ibb.co/PvMVG0YM/download-18.jpg", keywords: ["dough tray", "proofing tray"], whitesFoodLink: "https://pizzaequipment.co.uk/product/plastic-pizza-dough-boxes-60x40cm-see-internal-dims/?attribute_select-size=VAS010W%20-%2060x40x10cm%20-%208.5cm%20deep%20(int.)%20-%20BESTSELLER" },
+      { item: "Dough Lid", category: "Kitchenware", supplier: "WHITES FOOD", code: "GD-100002-W", boxSize: null, image: "https://i.ibb.co/4gWztq85/Screenshot-2025-12-01-at-01-52-14.png", keywords: ["dough lid", "lid"], whitesFoodLink: "https://pizzaequipment.co.uk/product/plastic-pizza-dough-box-lid-60x40cm/?attribute_colour=Clear" },
+      { item: "Dough Trolley", category: "Kitchenware", supplier: "WHITES FOOD", code: "GD-CA60", boxSize: null, image: "https://i.ibb.co/PGFmrmCC/download-19.jpg", keywords: ["dough trolley", "trolley"], whitesFoodLink: "https://pizzaequipment.co.uk/product/dough-box-storage-trolley-for-60x40cm-boxes-plain-or-turquoise-colour/" },
 
       // KITCHENWARE - CHEFLINE
       { item: "Plastic Container 10L", category: "Kitchenware", supplier: "CHEFLINE", code: "DA572", boxSize: null, image: "https://i.ibb.co/YCR0TNZ/download-20.jpg", keywords: ["container", "10l"] },
@@ -223,64 +229,30 @@
       return { matches: uniqueMatches, isMisspelling: uniqueMatches.length > 0 && bestDistance <= 2 };
     };
 
-    // Supplier styles - refined, subtle
     const SUPPLIER_STYLES = {
-      'CHEFLINE': {
-        border: 'border-zinc-700/50',
-        borderActive: 'border-blue-500/60',
-        bg: 'bg-zinc-800/30',
-        text: 'text-blue-400',
-        badge: 'bg-blue-500/90 text-white',
-        header: 'from-blue-600 to-blue-700',
-      },
-      'AMAZON': {
-        border: 'border-zinc-700/50',
-        borderActive: 'border-amber-500/60',
-        bg: 'bg-zinc-800/30',
-        text: 'text-amber-400',
-        badge: 'bg-amber-500/90 text-black',
-        header: 'from-amber-500 to-orange-500',
-      },
-      'WHITES FOOD': {
-        border: 'border-zinc-700/50',
-        borderActive: 'border-emerald-500/60',
-        bg: 'bg-zinc-800/30',
-        text: 'text-emerald-400',
-        badge: 'bg-emerald-500/90 text-white',
-        header: 'from-emerald-600 to-green-600',
-      },
+      'CHEFLINE': { badge: 'bg-blue-500/90 text-white', header: 'from-blue-600 to-blue-700' },
+      'AMAZON': { badge: 'bg-amber-500/90 text-black', header: 'from-amber-500 to-orange-500' },
+      'WHITES FOOD': { badge: 'bg-emerald-500/90 text-white', header: 'from-emerald-600 to-green-600' },
     };
 
-    // ============================================
-    // ITEM CARD - Premium with supplier borders
-    // ============================================
     function ItemCard({ item, onAdd, onImageClick }) {
       const [qty, setQty] = useState(1);
       const [pressed, setPressed] = useState(false);
       const isBox = item.boxSize !== null;
       const style = SUPPLIER_STYLES[item.supplier];
+      const hasLink = item.amazonLink || item.whitesFoodLink;
       
-      // Supplier border colors
       const borderColor = {
         'CHEFLINE': 'border-blue-500/40 hover:border-blue-500/70',
         'AMAZON': 'border-amber-500/40 hover:border-amber-500/70',
         'WHITES FOOD': 'border-emerald-500/40 hover:border-emerald-500/70',
       }[item.supplier] || 'border-zinc-700';
-
-      const glowColor = {
-        'CHEFLINE': 'hover:shadow-blue-500/10',
-        'AMAZON': 'hover:shadow-amber-500/10',
-        'WHITES FOOD': 'hover:shadow-emerald-500/10',
-      }[item.supplier] || '';
       
       return (
-        <div className={`bg-zinc-900/60 backdrop-blur-sm rounded-2xl border-2 ${borderColor} p-5 transition-all duration-200 hover:shadow-xl ${glowColor}`}>
+        <div className={`bg-zinc-900/60 backdrop-blur-sm rounded-2xl border-2 ${borderColor} p-5 transition-all duration-200 hover:shadow-xl`}>
           <div className="flex gap-4">
-            {/* Image placeholder */}
-            <div 
-              className={`w-20 h-20 bg-zinc-800/50 rounded-xl flex items-center justify-center flex-shrink-0 border border-zinc-700/50 cursor-pointer hover:opacity-80 transition`}
-              onClick={() => item.image && onImageClick(item.image)}
-            >
+            <div className="w-20 h-20 bg-zinc-800/50 rounded-xl flex items-center justify-center flex-shrink-0 border border-zinc-700/50 cursor-pointer hover:opacity-80 transition"
+              onClick={() => item.image && onImageClick(item.image)}>
               {item.image ? (
                 <img src={item.image} alt={item.item} className="w-full h-full object-cover rounded-xl" />
               ) : (
@@ -300,7 +272,6 @@
               
               <p className="text-sm text-zinc-500 font-mono mb-2">{item.code || 'No code'}</p>
               
-              {/* Box indicator - PROMINENT */}
               {isBox && (
                 <div className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-xl mb-3 shadow-lg shadow-red-600/25">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,47 +281,45 @@
                 </div>
               )}
               
-              <div className="flex items-center gap-3 mt-3">
-                <div className="flex items-center bg-zinc-800/80 rounded-xl border border-zinc-700/50">
-                  <button
-                    onClick={() => setQty(Math.max(1, qty - 1))}
-                    className="px-4 py-2.5 text-zinc-400 hover:text-white transition"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
+              {hasLink ? (
+                <div className="mt-3">
+                  <a href={item.amazonLink || item.whitesFoodLink} target="_blank" rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-base transition-all ${
+                      item.amazonLink ? 'bg-amber-500 text-black hover:bg-amber-400' : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                    }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                  </button>
-                  <span className="px-2 py-2 font-bold text-white text-lg min-w-[2.5rem] text-center">
-                    {qty}{isBox && <span className="text-zinc-400 text-sm ml-1">({qty * item.boxSize})</span>}
-                  </span>
-                  <button
-                    onClick={() => setQty(qty + 1)}
-                    className="px-4 py-2.5 text-zinc-400 hover:text-white transition"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                    </svg>
+                    View on {item.amazonLink ? 'Amazon' : 'Whites Food'}
+                  </a>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 mt-3">
+                  <div className="flex items-center bg-zinc-800/80 rounded-xl border border-zinc-700/50">
+                    <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-4 py-2.5 text-zinc-400 hover:text-white transition">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" /></svg>
+                    </button>
+                    <span className="px-2 py-2 font-bold text-white text-lg min-w-[2.5rem] text-center">
+                      {qty}{isBox && <span className="text-zinc-400 text-sm ml-1">({qty * item.boxSize})</span>}
+                    </span>
+                    <button onClick={() => setQty(qty + 1)} className="px-4 py-2.5 text-zinc-400 hover:text-white transition">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+                    </button>
+                  </div>
+                  <button onClick={() => { onAdd(item, qty); setQty(1); setPressed(true); setTimeout(() => setPressed(false), 150); }}
+                    className={`flex-1 bg-white text-black py-3 px-4 rounded-xl font-semibold text-base transition-all duration-150 ${pressed ? 'scale-95 bg-zinc-200' : 'hover:bg-zinc-100 active:scale-95'}`}>
+                    Add {isBox ? `${qty} box${qty > 1 ? 'es' : ''}` : ''}
                   </button>
                 </div>
-                <button
-                  onClick={() => { onAdd(item, qty); setQty(1); setPressed(true); setTimeout(() => setPressed(false), 150); }}
-                  className={`flex-1 bg-white text-black py-3 px-4 rounded-xl font-semibold text-base transition-all duration-150 ${pressed ? 'scale-95 bg-zinc-200' : 'hover:bg-zinc-100 active:scale-95'}`}
-                >
-                  Add {isBox ? `${qty} box${qty > 1 ? 'es' : ''}` : ''}
-                </button>
-              </div>
+              )}
             </div>
           </div>
         </div>
       );
     }
 
-    // ============================================
-    // SUPPLIER CART
-    // ============================================
     function SupplierCart({ supplier, items, onSend, onUpdate, onRemove }) {
       const style = SUPPLIER_STYLES[supplier];
-      
       return (
         <div className="glass rounded-2xl border border-zinc-700/50 overflow-hidden">
           <div className={`bg-gradient-to-r ${style.header} px-5 py-4 flex justify-between items-center`}>
@@ -358,10 +327,7 @@
               <span className="text-lg font-bold text-white">{supplier}</span>
               <span className="text-white/60 text-sm font-medium">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
             </div>
-            <button
-              onClick={onSend}
-              className="bg-white/20 hover:bg-white/30 text-white px-5 py-2 rounded-lg font-semibold text-sm transition backdrop-blur-sm"
-            >
+            <button onClick={onSend} className="bg-white/20 hover:bg-white/30 text-white px-5 py-2 rounded-lg font-semibold text-sm transition backdrop-blur-sm">
               Send Order
             </button>
           </div>
@@ -374,28 +340,20 @@
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white text-base truncate">{c.item.item}</p>
                     <p className="text-sm text-zinc-500 font-mono">{c.item.code}</p>
-                    {isBox && (
-                      <p className="text-sm text-zinc-400 font-medium mt-1">{c.quantity} box{c.quantity > 1 ? 'es' : ''} = {totalUnits} units</p>
-                    )}
+                    {isBox && <p className="text-sm text-zinc-400 font-medium mt-1">{c.quantity} box{c.quantity > 1 ? 'es' : ''} = {totalUnits} units</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center bg-zinc-900/80 border border-zinc-700/50 rounded-lg">
                       <button onClick={() => onUpdate(c.item, -1)} className="px-3 py-2 text-zinc-400 hover:text-white transition">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
-                        </svg>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" /></svg>
                       </button>
                       <span className="px-2 py-1.5 font-bold text-white">{c.quantity}</span>
                       <button onClick={() => onUpdate(c.item, 1)} className="px-3 py-2 text-zinc-400 hover:text-white transition">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                        </svg>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
                       </button>
                     </div>
                     <button onClick={() => onRemove(c.item)} className="text-zinc-500 hover:text-red-400 p-2 transition">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
                 </div>
@@ -406,9 +364,6 @@
       );
     }
 
-    // ============================================
-    // MAIN APP
-    // ============================================
     function App() {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [selectedLocation, setSelectedLocation] = useState('');
@@ -432,26 +387,17 @@
       const [pendingOrders, setPendingOrders] = useState([]);
       const [itemRequests, setItemRequests] = useState([]);
       const [orderHistory, setOrderHistory] = useState([]);
-      
-      // Scan states
       const [showScanModal, setShowScanModal] = useState(false);
       const [scanImage, setScanImage] = useState(null);
       const [scanning, setScanning] = useState(false);
       const [scanResults, setScanResults] = useState([]);
 
-      // Cloudflare Worker URL for AI scanning
       const WORKER_URL = "https://red-hot-mamma.dariosha10.workers.dev";
+      const inventoryDescriptions = inventory.map(i => `"${i.item}" (${i.category}) - keywords: ${i.keywords.join(', ')}`).join('\n');
 
-      // Build detailed inventory descriptions for AI matching
-      const inventoryDescriptions = inventory.map(i => 
-        `"${i.item}" (${i.category}) - keywords: ${i.keywords.join(', ')}`
-      ).join('\n');
-
-      // Scan image with Claude API via Cloudflare Worker
       const scanItemWithAI = async (base64Image, mediaType) => {
         setScanning(true);
         setScanResults([]);
-        
         try {
           const response = await fetch(WORKER_URL, {
             method: "POST",
@@ -459,188 +405,60 @@
             body: JSON.stringify({
               model: "claude-sonnet-4-20250514",
               max_tokens: 800,
-              messages: [{
-                role: "user",
-                content: [
-                  {
-                    type: "image",
-                    source: {
-                      type: "base64",
-                      media_type: mediaType,
-                      data: base64Image
-                    }
-                  },
-                  {
-                    type: "text",
-                    text: `You are an expert at identifying restaurant/bar/kitchen items from photos. This is for an Italian pizzeria called Red Hot Mamma.
-
-LOOK CAREFULLY at this real-world photo. Describe what you physically see - the shape, material, color, size, and any distinguishing features.
-
-Then match it to items from this inventory list:
-
-${inventoryDescriptions}
-
-IDENTIFICATION TIPS FOR REAL PHOTOS:
-- GLASSES: Look at the shape - tall/short, stemmed/stemless, wide bowl/narrow. Wine glasses have stems and bowls. Beer glasses are tall and straight. Gin glasses are large balloon-shaped. Shot glasses are small and thick.
-- CUTLERY: Wooden handles = our Fork, Knife, Spoons. Look for the distinctive wood grain.
-- RED ITEMS: Red ceramic cups, plates, bowls are common in our inventory.
-- METAL ITEMS: Shiny steel = likely bar tools (shaker, jigger, tongs) or kitchen items (ramekin, milk jug).
-- PIZZA TOOLS: Long wooden handles = Pizza Peel or Paddle. Blue plastic = Dough Scraper/Cutter.
-- PLASTIC CONTAINERS: White/clear containers with lids = our 4L or 10L containers.
-
-BE GENEROUS WITH MATCHING. If you see something that COULD be an item, include it. Real photos have different angles, lighting, and backgrounds than product photos.
-
-Respond with ONLY this JSON:
-{"seen": "detailed description of what you see", "matches": ["Item Name 1", "Item Name 2"]}
-
-IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsure between similar items, include all possibilities.`
-                  }
-                ]
-              }]
+              messages: [{ role: "user", content: [
+                { type: "image", source: { type: "base64", media_type: mediaType, data: base64Image } },
+                { type: "text", text: `Identify restaurant items from this photo for Red Hot Mamma pizzeria. Match to:\n${inventoryDescriptions}\nRespond ONLY with JSON: {"seen": "description", "matches": ["Item Name 1"]}` }
+              ]}]
             })
           });
-
           const data = await response.json();
-          let responseText = data.content[0].text.trim();
-          
-          // Clean up response
-          responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-          
-          console.log('AI Response:', responseText);
-          
-          // Parse the JSON response
-          let result = { seen: '', matches: [] };
-          try {
-            result = JSON.parse(responseText);
-          } catch (e) {
-            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              result = JSON.parse(jsonMatch[0]);
-            }
-          }
-
-          console.log('Parsed result:', result);
-
-          // Find matching inventory items
-          let foundItems = [];
-          if (result.matches && result.matches.length > 0) {
-            foundItems = result.matches.map(name => 
-              inventory.find(item => item.item.toLowerCase() === name.toLowerCase())
-            ).filter(Boolean);
-          }
-          
-          // Fuzzy fallback using what was seen
-          if (foundItems.length === 0 && result.seen) {
-            const seen = result.seen.toLowerCase();
-            foundItems = inventory.filter(item => 
-              seen.includes(item.item.toLowerCase().split(' ')[0]) ||
-              item.keywords.some(k => seen.includes(k.toLowerCase()))
-            ).slice(0, 3);
-          }
-
+          let responseText = data.content[0].text.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          let result = JSON.parse(responseText);
+          let foundItems = result.matches?.map(name => inventory.find(item => item.item.toLowerCase() === name.toLowerCase())).filter(Boolean) || [];
           setScanResults(foundItems);
-          
-          if (foundItems.length === 0) {
-            showNotify(`Saw: "${result.seen || 'unknown'}" - no match found`, 'error');
-          } else {
-            showNotify(`Identified: ${result.seen}`);
-          }
-        } catch (error) {
-          console.error('Scan error:', error);
-          showNotify('Scan failed. Try again.', 'error');
-        }
-        
+          if (foundItems.length === 0) showNotify(`No match found`, 'error');
+          else showNotify(`Identified: ${result.seen}`);
+        } catch (error) { showNotify('Scan failed', 'error'); }
         setScanning(false);
       };
 
-      // Handle image file selection (with HEIC support)
       const handleImageCapture = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         setScanning(true);
         setScanImage(null);
-        
         try {
           let processFile = file;
-          const fileName = file.name.toLowerCase();
-          const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif');
-          
-          // Convert HEIC to JPEG if needed
+          const isHeic = file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic');
           if (isHeic && typeof heic2any !== 'undefined') {
-            console.log('Converting HEIC to JPEG...');
-            showNotify('Converting image...');
-            try {
-              const convertedBlob = await heic2any({
-                blob: file,
-                toType: 'image/jpeg',
-                quality: 0.8
-              });
-              // heic2any can return array or single blob
-              const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-              processFile = new File([blob], 'converted.jpg', { type: 'image/jpeg' });
-            } catch (heicError) {
-              console.error('HEIC conversion failed:', heicError);
-              showNotify('HEIC conversion failed. Try screenshotting the photo first.', 'error');
-              setScanning(false);
-              return;
-            }
-          } else if (isHeic) {
-            showNotify('HEIC not supported. Screenshot the photo and try again.', 'error');
-            setScanning(false);
-            return;
+            const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+            processFile = new File([Array.isArray(blob) ? blob[0] : blob], 'converted.jpg', { type: 'image/jpeg' });
           }
-
           const reader = new FileReader();
           reader.onload = (event) => {
             const base64 = event.target.result;
             setScanImage(base64);
-            
-            // Extract base64 data and media type
             const [header, data] = base64.split(',');
-            const mediaType = header.match(/:(.*?);/)[1];
-            
-            scanItemWithAI(data, mediaType);
-          };
-          reader.onerror = () => {
-            showNotify('Failed to read image', 'error');
-            setScanning(false);
+            scanItemWithAI(data, header.match(/:(.*?);/)[1]);
           };
           reader.readAsDataURL(processFile);
-        } catch (error) {
-          console.error('Image processing error:', error);
-          showNotify('Image failed. Try taking a screenshot instead.', 'error');
-          setScanning(false);
-        }
+        } catch (error) { showNotify('Image failed', 'error'); setScanning(false); }
       };
 
       useEffect(() => {
         if (!isLoggedIn) return;
-        const unsubOrders = db.collection('pendingOrders').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-          setPendingOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        });
-        const unsubRequests = db.collection('itemRequests').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-          setItemRequests(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        });
-        const unsubHistory = db.collection('orderHistory').where('location', '==', selectedLocation).orderBy('createdAt', 'desc').limit(50).onSnapshot((snapshot) => {
-          setOrderHistory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        });
+        const unsubOrders = db.collection('pendingOrders').orderBy('createdAt', 'desc').onSnapshot(s => setPendingOrders(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+        const unsubRequests = db.collection('itemRequests').orderBy('createdAt', 'desc').onSnapshot(s => setItemRequests(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+        const unsubHistory = db.collection('orderHistory').where('location', '==', selectedLocation).orderBy('createdAt', 'desc').limit(50).onSnapshot(s => setOrderHistory(s.docs.map(d => ({ id: d.id, ...d.data() }))));
         return () => { unsubOrders(); unsubRequests(); unsubHistory(); };
       }, [isLoggedIn, selectedLocation]);
 
-      const showNotify = (message, type = 'success') => {
-        setNotification({ message, type });
-        setTimeout(() => setNotification(null), 3000);
-      };
+      const showNotify = (message, type = 'success') => { setNotification({ message, type }); setTimeout(() => setNotification(null), 3000); };
 
       const searchResults = useMemo(() => {
         if (!searchQuery.trim()) return [];
         const q = searchQuery.toLowerCase().trim();
-        return inventory.filter(item =>
-          item.item.toLowerCase().includes(q) ||
-          item.keywords.some(k => k.toLowerCase().includes(q)) ||
-          item.category.toLowerCase().includes(q)
-        );
+        return inventory.filter(item => item.item.toLowerCase().includes(q) || item.keywords.some(k => k.toLowerCase().includes(q)) || item.category.toLowerCase().includes(q));
       }, [searchQuery]);
 
       const fuzzyAnalysis = useMemo(() => {
@@ -650,24 +468,12 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
 
       const addToCart = (item, qty = 1) => {
         const existing = cart.find(c => c.item.item === item.item);
-        if (existing) {
-          setCart(cart.map(c => c.item.item === item.item ? { ...c, quantity: c.quantity + qty } : c));
-        } else {
-          setCart([...cart, { item, quantity: qty }]);
-        }
+        if (existing) setCart(cart.map(c => c.item.item === item.item ? { ...c, quantity: c.quantity + qty } : c));
+        else setCart([...cart, { item, quantity: qty }]);
         showNotify(`Added ${item.item}`);
       };
 
-      const updateQuantity = (item, delta) => {
-        setCart(cart.map(c => {
-          if (c.item.item === item.item) {
-            const newQty = Math.max(0, c.quantity + delta);
-            return { ...c, quantity: newQty };
-          }
-          return c;
-        }).filter(c => c.quantity > 0));
-      };
-
+      const updateQuantity = (item, delta) => setCart(cart.map(c => c.item.item === item.item ? { ...c, quantity: Math.max(0, c.quantity + delta) } : c).filter(c => c.quantity > 0));
       const removeFromCart = (item) => setCart(cart.filter(c => c.item.item !== item.item));
 
       const handleLogin = () => {
@@ -676,209 +482,125 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
         if (usernameInput.toLowerCase() === creds.username && passwordInput === creds.password) {
           setLoginAnimating(true);
           setTimeout(() => { setIsLoggedIn(true); setLoginError(''); setLoginAnimating(false); }, 300);
-        } else {
-          setLoginError('Incorrect username or password');
-          setPasswordInput('');
-        }
+        } else { setLoginError('Incorrect username or password'); setPasswordInput(''); }
       };
 
       const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      const getManagerEmail = () => MANAGER_EMAILS[selectedLocation] || '';
 
       const sendOrderEmail = async (supplier) => {
-        if (!validateEmail(staffEmail)) { setEmailError('Please enter a valid email'); return; }
         setSending(true);
         setEmailError('');
         const items = cart.filter(c => c.item.supplier === supplier);
         if (items.length === 0) return;
+        const managerEmail = getManagerEmail();
+        const ccEmail = staffEmail && validateEmail(staffEmail) ? staffEmail : managerEmail;
 
-        const orderBody = `ORDER REQUEST FROM ${selectedLocation}\n${'═'.repeat(50)}\nDate: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-GB')}\nLocation: ${selectedLocation}\nDelivery: Account Address\n${'═'.repeat(50)}\n\nITEMS ORDERED:\n\n${items.map(c => {
+        const itemsList = items.map(c => {
           const isBox = c.item.boxSize !== null;
           const totalUnits = isBox ? c.quantity * c.item.boxSize : c.quantity;
           return `Product Code: ${c.item.code}\nItem: ${c.item.item}\nQuantity: ${c.quantity}${isBox ? ` boxes (${totalUnits} units total)` : ' units'}`;
-        }).join('\n\n---\n\n')}\n\n${'═'.repeat(50)}\nThank you.`;
+        }).join('\n\n---\n\n');
 
-        const toEmail = supplier === 'CHEFLINE' ? CONFIG.CHEFLINE_EMAIL : CONFIG.WHITES_FOOD_EMAIL;
+        const orderBody = `ORDER REQUEST FROM ${selectedLocation}\n${'='.repeat(50)}\nDate: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-GB')}\nLocation: ${selectedLocation}\nDelivery: Account Address\n${'='.repeat(50)}\n\nITEMS ORDERED:\n\n${itemsList}\n\n${'='.repeat(50)}\n\nPLEASE REPLY DIRECTLY TO: ${managerEmail}\n(This is an automated order from Red Hot Mamma's ordering system)\n\nThank you.`;
 
         try {
-          await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, {
-            to_email: toEmail, staff_email: staffEmail,
+          const emailParams = {
+            to_email: CONFIG.CHEFLINE_EMAIL, 
+            staff_email: ccEmail,
+            name: selectedLocation.replace('RED HOT MAMMA ', ''),
             location: selectedLocation.replace('RED HOT MAMMA ', ''),
-            date: new Date().toLocaleDateString('en-GB'), order_body: orderBody,
-          });
-          
-          // Save to order history
+            date: new Date().toLocaleDateString('en-GB'), 
+            order_body: orderBody,
+          };
+          console.log('Sending email with params:', emailParams);
+          await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, emailParams);
           await db.collection('orderHistory').add({
-            location: selectedLocation,
-            locationShort: selectedLocation.replace('RED HOT MAMMA ', ''),
-            supplier: supplier,
-            items: items.map(c => ({
-              item: c.item.item,
-              code: c.item.code,
-              quantity: c.quantity,
-              boxSize: c.item.boxSize,
-              totalUnits: c.item.boxSize ? c.quantity * c.item.boxSize : c.quantity
-            })),
-            staffEmail: staffEmail,
-            createdAt: new Date(),
+            location: selectedLocation, locationShort: selectedLocation.replace('RED HOT MAMMA ', ''),
+            supplier, items: items.map(c => ({ item: c.item.item, code: c.item.code, quantity: c.quantity, boxSize: c.item.boxSize, totalUnits: c.item.boxSize ? c.quantity * c.item.boxSize : c.quantity })),
+            staffEmail: managerEmail, createdAt: new Date(),
           });
-          
           setCart(cart.filter(c => c.item.supplier !== supplier));
           setShowConfirmation(null);
           setStaffEmail('');
           showNotify(`Order sent to ${supplier}`);
-        } catch (error) {
-          console.error('Email error:', error);
-          showNotify('Failed to send email', 'error');
-        }
+        } catch (error) { showNotify('Failed to send email', 'error'); }
         setSending(false);
-      };
-
-      const markInStock = async (order) => {
-        try {
-          await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, {
-            to_email: CONFIG.ADMIN_EMAIL, staff_email: CONFIG.ADMIN_EMAIL, location: 'Stock Update',
-            date: new Date().toLocaleDateString('en-GB'),
-            order_body: `STOCK AVAILABLE\n${'═'.repeat(50)}\n${selectedLocation.replace('RED HOT MAMMA ', '')} HAS STOCK FOR ${order.locationShort}\n\nItem: ${order.item}\nQuantity: ${order.quantity}${order.boxSize ? ` boxes (${order.quantity * order.boxSize} units)` : ' units'}\n\n${order.locationShort} can collect.\n${'═'.repeat(50)}`,
-          });
-          await db.collection('pendingOrders').doc(order.id).update({ status: 'in-stock', stockLocation: selectedLocation });
-          showNotify(`Notified ${order.locationShort}`);
-        } catch (error) { showNotify('Failed to notify', 'error'); }
       };
 
       const submitCustomRequest = async () => {
         if (!customRequest.description.trim()) { showNotify('Please describe what you need', 'error'); return; }
         try {
-          // Save to Firebase
           await db.collection('itemRequests').add({
             description: customRequest.description, link: customRequest.link, note: customRequest.note,
             location: selectedLocation, locationShort: selectedLocation.replace('RED HOT MAMMA ', ''),
             createdAt: new Date(), status: 'pending',
           });
-          
-          // Send email notification
-          try {
-            await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, {
-              to_email: CONFIG.ADMIN_EMAIL, 
-              staff_email: CONFIG.ADMIN_EMAIL, 
-              location: selectedLocation.replace('RED HOT MAMMA ', '') + ' - Item Request',
-              date: new Date().toLocaleDateString('en-GB'),
-              order_body: `NEW ITEM REQUEST\n${'═'.repeat(40)}\n\nFrom: ${selectedLocation.replace('RED HOT MAMMA ', '')}\n\nItem Needed: ${customRequest.description}\n\nLink: ${customRequest.link || 'Not provided'}\n\nNotes: ${customRequest.note || 'None'}\n\n${'═'.repeat(40)}`,
-            });
-            console.log('Email sent successfully');
-          } catch (emailError) {
-            console.error('Email error:', emailError);
-            // Still show success since Firebase saved it
-          }
-          
+          await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, {
+            to_email: CONFIG.ADMIN_EMAIL, staff_email: CONFIG.ADMIN_EMAIL,
+            location: selectedLocation.replace('RED HOT MAMMA ', '') + ' - Item Request',
+            date: new Date().toLocaleDateString('en-GB'),
+            order_body: `NEW ITEM REQUEST\n${'='.repeat(40)}\n\nFrom: ${selectedLocation.replace('RED HOT MAMMA ', '')}\n\nItem Needed: ${customRequest.description}\n\nLink: ${customRequest.link || 'Not provided'}\n\nNotes: ${customRequest.note || 'None'}\n\n${'='.repeat(40)}`,
+          });
           setCustomRequest({ description: '', link: '', note: '' });
           setShowRequestModal(false);
           showNotify('Request submitted!');
-        } catch (error) { 
-          console.error('Submit error:', error);
-          showNotify('Failed to submit', 'error'); 
-        }
+        } catch (error) { showNotify('Failed to submit', 'error'); }
       };
 
-      // Mark request as received
       const markRequestReceived = async (requestId) => {
-        try {
-          await db.collection('itemRequests').doc(requestId).update({ status: 'received' });
-          showNotify('Marked as received');
-        } catch (error) {
-          console.error('Error marking received:', error);
-          showNotify('Failed to update', 'error');
-        }
+        try { await db.collection('itemRequests').doc(requestId).update({ status: 'received' }); showNotify('Marked as received'); }
+        catch (error) { showNotify('Failed to update', 'error'); }
       };
 
-      // Verify password for order confirmation
       const verifyPasswordAndSend = () => {
         const creds = SITE_CREDENTIALS[selectedLocation];
-        if (confirmPassword === creds.password) {
-          setShowConfirmation(showPasswordConfirm);
-          setShowPasswordConfirm(null);
-          setConfirmPassword('');
-        } else {
-          showNotify('Incorrect password', 'error');
-          setConfirmPassword('');
-        }
+        if (confirmPassword === creds.password) { setShowConfirmation(showPasswordConfirm); setShowPasswordConfirm(null); setConfirmPassword(''); }
+        else { showNotify('Incorrect password', 'error'); setConfirmPassword(''); }
       };
 
-      const pendingFromOthers = pendingOrders.filter(o => o.location !== selectedLocation && o.status === 'pending');
-      const myPending = pendingOrders.filter(o => o.location === selectedLocation);
       const cheflineItems = cart.filter(c => c.item.supplier === 'CHEFLINE');
-      const whitesItems = cart.filter(c => c.item.supplier === 'WHITES FOOD');
       const amazonItems = cart.filter(c => c.item.supplier === 'AMAZON');
+      const whitesFoodItems = cart.filter(c => c.item.supplier === 'WHITES FOOD');
 
-      // ==========================================
-      // LOGIN SCREEN - Clean, premium, subtle red
-      // ==========================================
       if (!isLoggedIn) {
         return (
           <div className={`min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 transition-opacity duration-300 ${loginAnimating ? 'opacity-0' : 'opacity-100'}`}>
             <div className="w-full max-w-sm">
-              {/* Mamma Logo */}
               <div className="text-center mb-10">
-                <img 
-                  src="https://i.ibb.co/wZ2Q68Xh/Dec-1-2025-12-03-03-PM.png" 
-                  alt="Mamma" 
-                  className="w-36 h-auto mx-auto mb-5 drop-shadow-2xl"
-                />
+                <img src="https://i.ibb.co/wZ2Q68Xh/Dec-1-2025-12-03-03-PM.png" alt="Mamma" className="w-36 h-auto mx-auto mb-5 drop-shadow-2xl" />
                 <h1 className="text-2xl font-bold text-white tracking-tight">Mamma's Ordering Hub</h1>
                 <p className="text-zinc-500 mt-2 text-base font-medium">Home of all your ordering</p>
               </div>
-
-              {/* Login Card */}
               <div className="glass-heavy rounded-3xl p-7 border border-zinc-800/80">
                 <div className="space-y-5">
                   <div>
                     <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2.5">Location</label>
-                    <select
-                      value={selectedLocation}
-                      onChange={(e) => { setSelectedLocation(e.target.value); setLoginError(''); }}
-                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all appearance-none cursor-pointer"
-                      style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2771717a' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em' }}
-                    >
+                    <select value={selectedLocation} onChange={(e) => { setSelectedLocation(e.target.value); setLoginError(''); }}
+                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none appearance-none cursor-pointer"
+                      style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2371717a' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em' }}>
                       <option value="">Select your site</option>
-                      {locations.map(loc => (
-                        <option key={loc} value={loc}>{loc.replace('RED HOT MAMMA ', '')}</option>
-                      ))}
+                      {locations.map(loc => <option key={loc} value={loc}>{loc.replace('RED HOT MAMMA ', '')}</option>)}
                     </select>
                   </div>
-
                   {selectedLocation && (
                     <div className="animate-fadeIn space-y-4">
                       <div>
                         <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2.5">Username</label>
-                        <input
-                          type="text"
-                          value={usernameInput}
-                          onChange={(e) => { setUsernameInput(e.target.value); setLoginError(''); }}
-                          placeholder="Enter username"
-                          className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all placeholder:text-zinc-600"
-                        />
+                        <input type="text" value={usernameInput} onChange={(e) => { setUsernameInput(e.target.value); setLoginError(''); }}
+                          placeholder="Enter username" className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none placeholder:text-zinc-600" />
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2.5">Password</label>
-                        <input
-                          type="password"
-                          value={passwordInput}
-                          onChange={(e) => { setPasswordInput(e.target.value); setLoginError(''); }}
+                        <input type="password" value={passwordInput} onChange={(e) => { setPasswordInput(e.target.value); setLoginError(''); }}
                           onKeyDown={(e) => e.key === 'Enter' && usernameInput && passwordInput && handleLogin()}
-                          placeholder="Enter password"
-                          className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all placeholder:text-zinc-600"
-                        />
+                          placeholder="Enter password" className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3.5 text-white text-base font-medium focus:border-zinc-600 focus:outline-none placeholder:text-zinc-600" />
                       </div>
-                      {loginError && (
-                        <p className="text-red-400 text-sm font-medium text-center animate-shake">{loginError}</p>
-                      )}
+                      {loginError && <p className="text-red-400 text-sm font-medium text-center animate-shake">{loginError}</p>}
                     </div>
                   )}
-
-                  <button
-                    onClick={handleLogin}
-                    disabled={!selectedLocation || !usernameInput || !passwordInput}
-                    className="w-full bg-white text-black py-3.5 rounded-xl text-base font-semibold hover:bg-zinc-100 transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
-                  >
+                  <button onClick={handleLogin} disabled={!selectedLocation || !usernameInput || !passwordInput}
+                    className="w-full bg-white text-black py-3.5 rounded-xl text-base font-semibold hover:bg-zinc-100 transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]">
                     Sign In
                   </button>
                 </div>
@@ -888,41 +610,30 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
         );
       }
 
-      // ==========================================
-      // MAIN APP
-      // ==========================================
       return (
         <div className="min-h-screen bg-[#0a0a0a] text-white">
-          {/* Notification */}
           {notification && (
-            <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold animate-slideDown ${
-              notification.type === 'error' ? 'bg-red-500 text-white' : 'bg-white text-black'
-            }`}>
+            <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold animate-slideDown ${notification.type === 'error' ? 'bg-red-500 text-white' : 'bg-white text-black'}`}>
               {notification.message}
             </div>
           )}
 
-          {/* Image Zoom Modal */}
           {imageZoom && (
             <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4 animate-fadeIn" onClick={() => setImageZoom(null)}>
               <div className="relative max-w-2xl w-full animate-scaleIn">
                 <img src={imageZoom} alt="Zoomed" className="w-full rounded-2xl" />
                 <button className="absolute top-3 right-3 w-9 h-9 bg-black/60 rounded-full flex items-center justify-center" onClick={() => setImageZoom(null)}>
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
             </div>
           )}
 
-          {/* Confirmation Modal */}
           {showConfirmation && (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
               <div className="glass-heavy rounded-2xl p-6 w-full max-w-md border border-zinc-800 animate-scaleIn">
                 <h2 className="text-xl font-bold text-white mb-1">Send Order</h2>
                 <p className="text-zinc-400 text-sm font-medium mb-4">{showConfirmation}</p>
-                
                 <div className="bg-zinc-900/60 rounded-xl p-4 mb-4 max-h-44 overflow-auto border border-zinc-800/50">
                   {cart.filter(c => c.item.supplier === showConfirmation).map((c, idx) => {
                     const isBox = c.item.boxSize !== null;
@@ -930,156 +641,95 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                     return (
                       <div key={idx} className="flex justify-between py-2.5 border-b border-zinc-800/50 last:border-0">
                         <span className="font-medium text-white">{c.item.item}</span>
-                        <span className="text-zinc-400 font-medium text-sm">
-                          {c.quantity} {isBox ? `box${c.quantity > 1 ? 'es' : ''} (${totalUnits})` : 'units'}
-                        </span>
+                        <span className="text-zinc-400 font-medium text-sm">{c.quantity} {isBox ? `box${c.quantity > 1 ? 'es' : ''} (${totalUnits})` : 'units'}</span>
                       </div>
                     );
                   })}
                 </div>
-                
                 <div className="mb-4">
-                  <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Your Email</label>
-                  <input
-                    type="email"
-                    value={staffEmail}
-                    onChange={(e) => { setStaffEmail(e.target.value); setEmailError(''); }}
-                    placeholder="you@email.com"
-                    className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
-                  />
+                  <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Additional CC (optional)</label>
+                  <input type="email" value={staffEmail} onChange={(e) => { setStaffEmail(e.target.value); setEmailError(''); }}
+                    placeholder="your@email.com" className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none" />
                   {emailError && <p className="text-red-400 text-sm font-medium mt-2">{emailError}</p>}
-                  <p className="text-xs text-zinc-600 mt-2">You'll receive a copy of this order</p>
+                  <p className="text-xs text-zinc-500 mt-2">Auto CC'd to manager: {getManagerEmail()}</p>
                 </div>
-                
                 <div className="flex gap-3">
-                  <button
-                    onClick={() => sendOrderEmail(showConfirmation)}
-                    disabled={sending || !staffEmail}
-                    className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-zinc-100 transition disabled:opacity-40 active:scale-[0.98]"
-                  >
+                  <button onClick={() => sendOrderEmail(showConfirmation)} disabled={sending}
+                    className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-zinc-100 transition disabled:opacity-40 active:scale-[0.98]">
                     {sending ? 'Sending...' : 'Send Order'}
                   </button>
-                  <button
-                    onClick={() => { setShowConfirmation(null); setStaffEmail(''); setEmailError(''); }}
-                    className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition"
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={() => { setShowConfirmation(null); setStaffEmail(''); setEmailError(''); }}
+                    className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition">Cancel</button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Password Confirmation Modal */}
           {showPasswordConfirm && (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
               <div className="glass-heavy rounded-2xl p-6 w-full max-w-md border border-zinc-800 animate-scaleIn">
                 <h2 className="text-xl font-bold text-white mb-1">Confirm Order</h2>
                 <p className="text-zinc-400 text-sm font-medium mb-5">Enter your password to confirm the {showPasswordConfirm} order</p>
-                
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Password</label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && confirmPassword && verifyPasswordAndSend()}
-                      placeholder="Enter your password"
-                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
-                    />
+                      placeholder="Enter your password" className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none" />
                   </div>
                 </div>
-                
                 <div className="flex gap-3 mt-5">
-                  <button
-                    onClick={verifyPasswordAndSend}
-                    disabled={!confirmPassword}
-                    className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-zinc-100 transition disabled:opacity-40 active:scale-[0.98]"
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    onClick={() => { setShowPasswordConfirm(null); setConfirmPassword(''); }}
-                    className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition"
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={verifyPasswordAndSend} disabled={!confirmPassword}
+                    className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-zinc-100 transition disabled:opacity-40 active:scale-[0.98]">Confirm</button>
+                  <button onClick={() => { setShowPasswordConfirm(null); setConfirmPassword(''); }}
+                    className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition">Cancel</button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Request Modal */}
           {showRequestModal && (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
               <div className="glass-heavy rounded-2xl p-6 w-full max-w-md border border-zinc-800 animate-scaleIn">
                 <h2 className="text-xl font-bold text-white mb-1">Request New Item</h2>
                 <p className="text-zinc-400 text-sm font-medium mb-5">Not in database? Request it here</p>
-                
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">What do you need?</label>
-                    <input
-                      type="text"
-                      value={customRequest.description}
-                      onChange={(e) => setCustomRequest({ ...customRequest, description: e.target.value })}
-                      placeholder="e.g. Fly trap, door stop..."
-                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
-                    />
+                    <input type="text" value={customRequest.description} onChange={(e) => setCustomRequest({ ...customRequest, description: e.target.value })}
+                      placeholder="e.g. Fly trap, door stop..." className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Product Link (optional)</label>
-                    <input
-                      type="url"
-                      value={customRequest.link}
-                      onChange={(e) => setCustomRequest({ ...customRequest, link: e.target.value })}
-                      placeholder="https://amazon.co.uk/..."
-                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
-                    />
+                    <input type="url" value={customRequest.link} onChange={(e) => setCustomRequest({ ...customRequest, link: e.target.value })}
+                      placeholder="https://amazon.co.uk/..." className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Notes (optional)</label>
-                    <textarea
-                      value={customRequest.note}
-                      onChange={(e) => setCustomRequest({ ...customRequest, note: e.target.value })}
-                      placeholder="Any extra details..."
-                      rows={2}
-                      className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none resize-none"
-                    />
+                    <textarea value={customRequest.note} onChange={(e) => setCustomRequest({ ...customRequest, note: e.target.value })}
+                      placeholder="Any extra details..." rows={2} className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-base font-medium text-white placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none resize-none" />
                   </div>
                 </div>
-                
                 <div className="flex gap-3 mt-5">
-                  <button onClick={submitCustomRequest} className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]">
-                    Submit Request
-                  </button>
-                  <button onClick={() => setShowRequestModal(false)} className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition">
-                    Cancel
-                  </button>
+                  <button onClick={submitCustomRequest} className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]">Submit Request</button>
+                  <button onClick={() => setShowRequestModal(false)} className="px-5 py-3 bg-zinc-800 rounded-xl text-sm font-semibold hover:bg-zinc-700 transition">Cancel</button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Scan Modal */}
           {showScanModal && (
             <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
               <div className="glass-heavy rounded-2xl p-6 w-full max-w-md border border-zinc-800 animate-scaleIn">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-bold text-white">Scan Item</h2>
                   <button onClick={() => { setShowScanModal(false); setScanImage(null); setScanResults([]); }} className="text-zinc-400 hover:text-white p-1">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
-
                 {!scanImage && !scanning ? (
                   <div className="space-y-4">
                     <p className="text-zinc-400 text-sm">Take a photo or upload an image to identify items</p>
-                    
-                    {/* Camera capture */}
                     <label className="flex flex-col items-center justify-center w-full h-40 bg-zinc-900 border-2 border-dashed border-zinc-700 rounded-xl cursor-pointer hover:border-zinc-500 transition">
                       <svg className="w-12 h-12 text-zinc-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -1088,8 +738,6 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                       <span className="text-zinc-400 font-medium">Take Photo</span>
                       <input type="file" accept="image/*,.heic,.heif" capture="environment" className="hidden" onChange={handleImageCapture} />
                     </label>
-
-                    {/* Upload from gallery */}
                     <label className="flex items-center justify-center w-full py-3 bg-zinc-800 border border-zinc-700 rounded-xl cursor-pointer hover:bg-zinc-700 transition">
                       <svg className="w-5 h-5 text-zinc-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1098,16 +746,15 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                       <input type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleImageCapture} />
                     </label>
                   </div>
-                ) : !scanImage && scanning ? (
+                ) : scanning && !scanImage ? (
                   <div className="h-48 bg-zinc-900 rounded-xl flex items-center justify-center">
                     <div className="text-center">
                       <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                      <p className="text-white font-medium">Processing image...</p>
+                      <p className="text-white font-medium">Processing...</p>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Preview image */}
                     <div className="relative">
                       <img src={scanImage} alt="Scanned" className="w-full h-48 object-contain bg-zinc-900 rounded-xl" />
                       {scanning && (
@@ -1119,8 +766,6 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                         </div>
                       )}
                     </div>
-
-                    {/* Results */}
                     {!scanning && scanResults.length > 0 && (
                       <div className="space-y-2">
                         <p className="text-sm font-medium text-zinc-400">Found {scanResults.length} item{scanResults.length > 1 ? 's' : ''}:</p>
@@ -1133,37 +778,20 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                                 <p className="text-xs text-zinc-500">{item.supplier}</p>
                               </div>
                             </div>
-                            <button
-                              onClick={() => { addToCart(item, 1); setShowScanModal(false); setScanImage(null); setScanResults([]); }}
-                              className="bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm hover:bg-zinc-100 transition"
-                            >
-                              Add
-                            </button>
+                            <button onClick={() => { addToCart(item, 1); setShowScanModal(false); setScanImage(null); setScanResults([]); }}
+                              className="bg-white text-black px-4 py-2 rounded-lg font-semibold text-sm hover:bg-zinc-100 transition">Add</button>
                           </div>
                         ))}
                       </div>
                     )}
-
-                    {!scanning && scanResults.length === 0 && (
-                      <div className="text-center py-4">
-                        <p className="text-zinc-400 text-sm">No matching items found</p>
-                      </div>
-                    )}
-
-                    {/* Retry button */}
-                    <button
-                      onClick={() => { setScanImage(null); setScanResults([]); }}
-                      className="w-full py-3 bg-zinc-800 rounded-xl font-semibold text-white hover:bg-zinc-700 transition"
-                    >
-                      Try Another Photo
-                    </button>
+                    {!scanning && scanResults.length === 0 && <div className="text-center py-4"><p className="text-zinc-400 text-sm">No matching items found</p></div>}
+                    <button onClick={() => { setScanImage(null); setScanResults([]); }} className="w-full py-3 bg-zinc-800 rounded-xl font-semibold text-white hover:bg-zinc-700 transition">Try Another Photo</button>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* Header */}
           <header className="glass-heavy border-b border-zinc-800/80 sticky top-0 z-30">
             <div className="max-w-2xl mx-auto px-4 py-3.5">
               <div className="flex justify-between items-center">
@@ -1173,31 +801,16 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                 </div>
                 <div className="flex items-center gap-1">
                   {[
-                    { id: 'search', label: 'Search', icon: null },
-                    { id: 'cart', label: 'Order', count: cart.length, icon: null },
-                    { id: 'requests', label: 'Requests', count: itemRequests.filter(r => r.status === 'pending').length, icon: null },
-                    { id: 'history', label: '', icon: 'receipt' },
+                    { id: 'search', label: 'Search' },
+                    { id: 'cart', label: 'Order', count: cart.length },
+                    { id: 'requests', label: 'Requests', count: itemRequests.filter(r => r.status === 'pending').length },
+                    { id: 'history', label: 'History' },
                   ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setView(tab.id)}
-                      className={`px-3.5 py-2 rounded-lg font-medium text-sm transition-all relative ${
-                        view === tab.id
-                          ? 'bg-white text-black'
-                          : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-                      }`}
-                    >
-                      {tab.icon === 'receipt' ? (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      ) : tab.label}
+                    <button key={tab.id} onClick={() => setView(tab.id)}
+                      className={`px-3.5 py-2 rounded-lg font-medium text-sm transition-all relative ${view === tab.id ? 'bg-white text-black' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'}`}>
+                      {tab.label}
                       {tab.count > 0 && (
-                        <span className={`absolute -top-1 -right-1 w-4 h-4 text-[10px] rounded-full flex items-center justify-center font-bold ${
-                          view === tab.id ? 'bg-red-500 text-white' : 'bg-zinc-600 text-white'
-                        }`}>
-                          {tab.count}
-                        </span>
+                        <span className={`absolute -top-1 -right-1 w-4 h-4 text-[10px] rounded-full flex items-center justify-center font-bold ${view === tab.id ? 'bg-red-500 text-white' : 'bg-zinc-600 text-white'}`}>{tab.count}</span>
                       )}
                     </button>
                   ))}
@@ -1207,35 +820,25 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
           </header>
 
           <main className="max-w-2xl mx-auto p-4 pb-24">
-            {/* SEARCH VIEW */}
+
             {view === 'search' && (
               <>
                 <div className="sticky top-[61px] z-20 bg-[#0a0a0a] pb-4 pt-2">
                   <div className="flex gap-2">
                     <div className="relative flex-1">
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search items..."
-                        className="w-full glass border border-zinc-800 rounded-xl px-4 py-3.5 pl-11 text-base font-medium text-white placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none transition-all"
-                      />
+                      <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search items..."
+                        className="w-full glass border border-zinc-800 rounded-xl px-4 py-3.5 pl-11 text-base font-medium text-white placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none transition-all" />
                       <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                       {searchQuery && (
                         <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition p-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                       )}
                     </div>
-                    {/* Scan button */}
-                    <button
-                      onClick={() => setShowScanModal(true)}
-                      className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-red-600 to-red-700 rounded-xl text-white hover:from-red-500 hover:to-red-600 transition-all active:scale-95 shadow-lg shadow-red-900/30"
-                    >
+                    <button onClick={() => setShowScanModal(true)}
+                      className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-red-600 to-red-700 rounded-xl text-white hover:from-red-500 hover:to-red-600 transition-all active:scale-95 shadow-lg shadow-red-900/30">
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1251,27 +854,16 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                         <p className="text-sm font-medium text-zinc-400 mb-3">Did you mean:</p>
                         <div className="flex flex-wrap gap-2">
                           {fuzzyAnalysis.matches.map((s, i) => (
-                            <button key={i} onClick={() => setSearchQuery(s.item.item)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white text-sm font-medium transition">
-                              {s.item.item}
-                            </button>
+                            <button key={i} onClick={() => setSearchQuery(s.item.item)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white text-sm font-medium transition">{s.item.item}</button>
                           ))}
                         </div>
                       </div>
                     ) : (
                       <div className="glass rounded-xl border border-zinc-800 p-8 text-center">
-                        <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <svg className="w-6 h-6 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
                         <p className="text-white text-base font-semibold mb-1">No items found</p>
                         <p className="text-zinc-500 text-sm mb-5">"{searchQuery}" is not in the database</p>
-                        <button
-                          onClick={() => { setCustomRequest({ ...customRequest, description: searchQuery }); setShowRequestModal(true); }}
-                          className="bg-white text-black px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]"
-                        >
-                          Request This Item
-                        </button>
+                        <button onClick={() => { setCustomRequest({ ...customRequest, description: searchQuery }); setShowRequestModal(true); }}
+                          className="bg-white text-black px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]">Request This Item</button>
                       </div>
                     )}
                   </div>
@@ -1279,9 +871,7 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
 
                 {searchResults.length > 0 ? (
                   <div className="space-y-3">
-                    {searchResults.map((item, i) => (
-                      <ItemCard key={i} item={item} onAdd={addToCart} onImageClick={setImageZoom} />
-                    ))}
+                    {searchResults.map((item, i) => <ItemCard key={i} item={item} onAdd={addToCart} onImageClick={setImageZoom} />)}
                   </div>
                 ) : !searchQuery ? (
                   <div className="text-center py-16">
@@ -1292,15 +882,8 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                     </div>
                     <p className="text-white text-lg font-semibold">Search for items</p>
                     <p className="text-zinc-500 text-sm mt-1 mb-6">Try "wine glass", "fork", or "pizza peel"</p>
-                    
-                    <div className="flex items-center justify-center gap-2 text-zinc-500 text-sm">
-                      <span>or</span>
-                    </div>
-                    
-                    <button
-                      onClick={() => setShowScanModal(true)}
-                      className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-500 hover:to-red-600 transition shadow-lg shadow-red-900/30"
-                    >
+                    <button onClick={() => setShowScanModal(true)}
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-500 hover:to-red-600 transition shadow-lg shadow-red-900/30">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1312,8 +895,6 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
               </>
             )}
 
-            {/* PENDING / STOCK VIEW */}
-            {/* CART VIEW */}
             {view === 'cart' && (
               <>
                 {cart.length === 0 ? (
@@ -1324,46 +905,52 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                       </svg>
                     </div>
                     <p className="text-white text-lg font-semibold">No items to order</p>
-                    <button onClick={() => setView('search')} className="mt-5 bg-white text-black px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]">
-                      Browse Items
-                    </button>
+                    <button onClick={() => setView('search')} className="mt-5 bg-white text-black px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition active:scale-[0.98]">Browse Items</button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {cheflineItems.length > 0 && (
-                      <SupplierCart supplier="CHEFLINE" items={cheflineItems} onSend={() => setShowPasswordConfirm('CHEFLINE')} onUpdate={updateQuantity} onRemove={removeFromCart} />
-                    )}
-                    {whitesItems.length > 0 && (
-                      <SupplierCart supplier="WHITES FOOD" items={whitesItems} onSend={() => setShowPasswordConfirm('WHITES FOOD')} onUpdate={updateQuantity} onRemove={removeFromCart} />
-                    )}
+                    {cheflineItems.length > 0 && <SupplierCart supplier="CHEFLINE" items={cheflineItems} onSend={() => setShowPasswordConfirm('CHEFLINE')} onUpdate={updateQuantity} onRemove={removeFromCart} />}
+                    
                     {amazonItems.length > 0 && (
                       <div className="glass rounded-2xl border border-zinc-700/50 overflow-hidden">
-                        <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-4 flex justify-between items-center">
+                        <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-4">
                           <span className="text-lg font-bold text-black">Amazon</span>
-                          <span className="text-black/60 text-sm font-medium">{amazonItems.length} items</span>
+                          <span className="text-black/60 text-sm font-medium ml-3">{amazonItems.length} items - order manually</span>
                         </div>
                         <div className="p-4 space-y-3">
                           {amazonItems.map((c, i) => (
                             <div key={i} className="flex items-center justify-between p-4 bg-zinc-800/40 rounded-xl border border-zinc-700/30">
-                              <div className="flex-1">
-                                <p className="font-semibold text-white">{c.item.item}</p>
-                                <p className="text-sm text-zinc-500">Qty: {c.quantity}</p>
-                              </div>
+                              <div className="flex-1"><p className="font-semibold text-white">{c.item.item}</p></div>
                               <div className="flex gap-2">
-                                <a href={c.item.amazonLink} target="_blank" rel="noopener noreferrer" className="bg-amber-500 text-black px-4 py-2 rounded-lg font-semibold text-sm hover:bg-amber-400 transition">
-                                  View on Amazon
-                                </a>
+                                <a href={c.item.amazonLink} target="_blank" rel="noopener noreferrer" className="bg-amber-500 text-black px-4 py-2 rounded-lg font-semibold text-sm hover:bg-amber-400 transition">View on Amazon</a>
                                 <button onClick={() => removeFromCart(c.item)} className="text-zinc-500 hover:text-red-400 p-2 transition">
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                               </div>
                             </div>
                           ))}
                         </div>
-                        <div className="px-5 pb-4">
-                          <p className="text-sm text-zinc-500">Amazon items need to be ordered manually</p>
+                      </div>
+                    )}
+                    
+                    {whitesFoodItems.length > 0 && (
+                      <div className="glass rounded-2xl border border-zinc-700/50 overflow-hidden">
+                        <div className="bg-gradient-to-r from-emerald-600 to-green-600 px-5 py-4">
+                          <span className="text-lg font-bold text-white">Whites Food</span>
+                          <span className="text-white/60 text-sm font-medium ml-3">{whitesFoodItems.length} items - order manually</span>
+                        </div>
+                        <div className="p-4 space-y-3">
+                          {whitesFoodItems.map((c, i) => (
+                            <div key={i} className="flex items-center justify-between p-4 bg-zinc-800/40 rounded-xl border border-zinc-700/30">
+                              <div className="flex-1"><p className="font-semibold text-white">{c.item.item}</p></div>
+                              <div className="flex gap-2">
+                                <a href={c.item.whitesFoodLink} target="_blank" rel="noopener noreferrer" className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-emerald-500 transition">View on Whites Food</a>
+                                <button onClick={() => removeFromCart(c.item)} className="text-zinc-500 hover:text-red-400 p-2 transition">
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -1372,55 +959,30 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
               </>
             )}
 
-            {/* REQUESTS VIEW */}
             {view === 'requests' && (
               <>
                 {itemRequests.length === 0 ? (
                   <div className="text-center py-20">
-                    <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-5">
-                      <svg className="w-7 h-7 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                    </div>
                     <p className="text-white text-lg font-semibold">No requests yet</p>
                     <p className="text-zinc-500 text-sm mt-1">Item requests will appear here</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {itemRequests.filter(r => r.status !== 'received').map(r => (
-                      <div key={r.id} className={`glass rounded-xl border p-4 ${
-                        r.status === 'pending' ? 'border-amber-500/40' :
-                        r.status === 'approved' ? 'border-emerald-500/40' : 'border-red-500/40'
-                      }`}>
+                      <div key={r.id} className={`glass rounded-xl border p-4 ${r.status === 'pending' ? 'border-amber-500/40' : r.status === 'approved' ? 'border-emerald-500/40' : 'border-red-500/40'}`}>
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <p className="text-base font-semibold text-white">{r.description}</p>
                             <p className="text-xs font-medium text-zinc-500 uppercase">{r.locationShort}</p>
                           </div>
-                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
-                            r.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
-                            r.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
-                          }`}>
-                            {r.status}
-                          </span>
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${r.status === 'pending' ? 'bg-amber-500/20 text-amber-400' : r.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>{r.status}</span>
                         </div>
-                        {r.link && (
-                          <a href={r.link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm block mb-1 truncate">
-                            {r.link}
-                          </a>
-                        )}
+                        {r.link && <a href={r.link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm block mb-1 truncate">{r.link}</a>}
                         {r.note && <p className="text-zinc-400 text-sm">{r.note}</p>}
                         <div className="flex justify-between items-center mt-3">
-                          <p className="text-xs text-zinc-600">
-                            {r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString('en-GB') : new Date(r.createdAt).toLocaleString('en-GB')}
-                          </p>
+                          <p className="text-xs text-zinc-600">{r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString('en-GB') : new Date(r.createdAt).toLocaleString('en-GB')}</p>
                           {r.status === 'pending' && (
-                            <button
-                              onClick={() => markRequestReceived(r.id)}
-                              className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-                            >
-                              Mark Received
-                            </button>
+                            <button onClick={() => markRequestReceived(r.id)} className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Mark Received</button>
                           )}
                         </div>
                       </div>
@@ -1430,7 +992,6 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
               </>
             )}
 
-            {/* ORDER HISTORY VIEW */}
             {view === 'history' && (
               <>
                 <div className="mb-4">
@@ -1439,11 +1000,6 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                 </div>
                 {orderHistory.length === 0 ? (
                   <div className="text-center py-20">
-                    <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-5">
-                      <svg className="w-7 h-7 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
                     <p className="text-white text-lg font-semibold">No orders yet</p>
                     <p className="text-zinc-500 text-sm mt-1">Your order history will appear here</p>
                   </div>
@@ -1451,19 +1007,10 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                   <div className="space-y-4">
                     {orderHistory.map(order => (
                       <div key={order.id} className="glass rounded-xl border border-zinc-700/50 overflow-hidden">
-                        <div className={`px-4 py-3 flex justify-between items-center ${
-                          order.supplier === 'CHEFLINE' ? 'bg-blue-600/20 border-b border-blue-500/30' :
-                          order.supplier === 'WHITES FOOD' ? 'bg-emerald-600/20 border-b border-emerald-500/30' :
-                          'bg-amber-600/20 border-b border-amber-500/30'
-                        }`}>
+                        <div className={`px-4 py-3 flex justify-between items-center ${order.supplier === 'CHEFLINE' ? 'bg-blue-600/20 border-b border-blue-500/30' : order.supplier === 'WHITES FOOD' ? 'bg-emerald-600/20 border-b border-emerald-500/30' : 'bg-amber-600/20 border-b border-amber-500/30'}`}>
                           <div>
-                            <span className={`text-sm font-bold ${
-                              order.supplier === 'CHEFLINE' ? 'text-blue-400' :
-                              order.supplier === 'WHITES FOOD' ? 'text-emerald-400' : 'text-amber-400'
-                            }`}>{order.supplier}</span>
-                            <p className="text-xs text-zinc-400">
-                              {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : new Date(order.createdAt).toLocaleDateString('en-GB')}
-                            </p>
+                            <span className={`text-sm font-bold ${order.supplier === 'CHEFLINE' ? 'text-blue-400' : order.supplier === 'WHITES FOOD' ? 'text-emerald-400' : 'text-amber-400'}`}>{order.supplier}</span>
+                            <p className="text-xs text-zinc-400">{order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : new Date(order.createdAt).toLocaleDateString('en-GB')}</p>
                           </div>
                           <span className="text-xs text-zinc-500">{order.items?.length || 0} items</span>
                         </div>
@@ -1471,9 +1018,7 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
                           {order.items?.map((item, idx) => (
                             <div key={idx} className="flex justify-between items-center text-sm">
                               <span className="text-zinc-300">{item.item}</span>
-                              <span className="text-zinc-500">
-                                {item.quantity}{item.boxSize ? ` boxes (${item.totalUnits} units)` : ' units'}
-                              </span>
+                              <span className="text-zinc-500">{item.quantity}{item.boxSize ? ` boxes (${item.totalUnits} units)` : ' units'}</span>
                             </div>
                           ))}
                         </div>
@@ -1485,13 +1030,8 @@ IMPORTANT: Use EXACT item names from the list. Include 1-3 best matches. If unsu
             )}
           </main>
 
-          {/* Logout */}
-          <button
-            onClick={() => { setIsLoggedIn(false); setSelectedLocation(''); setUsernameInput(''); setPasswordInput(''); setCart([]); }}
-            className="fixed bottom-5 left-5 glass border border-zinc-800 text-zinc-500 px-4 py-2 rounded-lg font-medium text-sm hover:text-white hover:border-zinc-600 transition"
-          >
-            Sign Out
-          </button>
+          <button onClick={() => { setIsLoggedIn(false); setSelectedLocation(''); setUsernameInput(''); setPasswordInput(''); setCart([]); }}
+            className="fixed bottom-5 left-5 glass border border-zinc-800 text-zinc-500 px-4 py-2 rounded-lg font-medium text-sm hover:text-white hover:border-zinc-600 transition">Sign Out</button>
         </div>
       );
     }
